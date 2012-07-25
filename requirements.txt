@@ -1,0 +1,5 @@
+argparse==1.2.1
+mock==1.0b1
+py==1.4.9
+pytest==2.2.4
+wsgiref==0.1.2
