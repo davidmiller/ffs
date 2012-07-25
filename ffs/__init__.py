@@ -17,6 +17,12 @@ else:
 def _defensive_dperms(filename):
     """
     Check that the permissions of `filename`'s directory are sane
+
+    Arguments:
+    - `filename`: str
+
+    Return: bool
+    Exceptions: None
     """
     filename = os.path.abspath(filename)
     targetdir = os.path.dirname(filename)
@@ -30,7 +36,10 @@ def _defensive_access(filepath):
 
     Arguments:
     - `filepath`: str
-    """
+
+    Return: bool
+    Exceptions: None
+     """
     filepath = os.path.abspath(filepath)
     if not _defensive_dperms(filepath):
         return False
@@ -40,7 +49,15 @@ def _defensive_access(filepath):
 
 def mkdir_p(path):
     """
-    Python translation of mkdir -p
+    Python translation of *nix mkdir -p
+
+    Will create all components in `path` which do not exist.
+
+    Arguments:
+    - `path`: str
+
+    Return: None
+    Exceptions: Exception
     """
     try:
         os.makedirs(path)
@@ -83,18 +100,16 @@ def lsmtime(path, lessthan=None):
         ls = []
         for fname in files:
             fpath = os.path.join(base, fname)
-            mtime = os.path.getmtime(fpath)
-            mtime = float(mtime) # Don't rely on os.stat_float_times() == True
-            mdatetime = ts2dt(mtime)
-            if mdatetime < lessthan:
+            # Don't rely on os.stat_float_times() == True
+            mtime = float(os.path.getmtime(fpath))
+            if ts2dt(mtime)< lessthan:
                 ls.append(fpath)
         return ls
 
 def rm(*targets):
     """
-    API Wrapper around various invocations of the *nix
+    API wrapper to get closer to the *nix
     rm utility.
-
 
     Arguments:
     - `*targets`: all target paths
@@ -114,6 +129,9 @@ def hsize(filepath):
 
     Arguments:
     - `filepath`: str
+
+    Return: str
+    Exceptions: None
     """
     filename = os.path.abspath(filepath)
     fsize = size(filepath)
@@ -127,6 +145,9 @@ def size(filepath):
 
     Arguments:
     - `filepath`: str
+
+    Return: int
+    Exceptions: None
     """
     filename = os.path.abspath(filepath)
     if not _defensive_access(filepath):
@@ -134,7 +155,15 @@ def size(filepath):
     return int(os.stat(filename).st_size)
 
 def is_exe(fpath):
-    "Is `fpath' executable?"
+    """
+    Is `fpath' executable?
+
+    Arguments:
+    - `fpath`: str
+
+    Return: bool
+    Exceptions: None
+    """
     return os.path.exists(fpath) and os.access(fpath, os.X_OK)
 
 def which(program):
@@ -143,6 +172,12 @@ def which(program):
 
     Examine PATH to see if `program' is on it.
     Return either the fully qualified filename or None
+
+    Arguments:
+    - `program`: str
+
+    Return: str or None
+    Exceptions: None
     """
     fpath, fname = os.path.split(program)
     if fpath:
