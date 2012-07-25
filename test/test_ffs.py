@@ -56,6 +56,7 @@ class BaseNTestCase(unittest.TestCase):
             based = ffs.basen(path, num=num)
             self.assertEqual(expected, based)
 
+
 class LsmtimeTestCase(unittest.TestCase):
 
     def test_lessthan(self):
@@ -80,15 +81,19 @@ class LsmtimeTestCase(unittest.TestCase):
                 self.assertEqual(expected, lessthan)
 
 class RmTestCase(unittest.TestCase):
-    def setUp(self):
-        pass
 
-    def test_(self):
-        """ """
-        pass
+    def test_rm(self):
+        "Simple case removing a file"
+        with patch.object(ffs.os, 'remove') as prm:
+            ffs.rm('this.py')
+            prm.assert_called_once_with('this.py')
 
-    def tearDown(self):
-        pass
+    def test_rm_many(self):
+        "Remove many files"
+        with patch.object(ffs.os, 'remove') as prm:
+            ffs.rm('this.py', 'that.py')
+            prm.assert_any_call('this.py')
+            prm.assert_any_call('that.py')
 
 class SizeTestCase(unittest.TestCase):
 

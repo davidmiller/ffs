@@ -102,9 +102,8 @@ def rm(*targets):
     Return: None
     Exceptions: None
     """
-
-
-
+    for target in targets:
+        os.remove(target)
     return
 
 def hsize(filepath):
@@ -137,7 +136,6 @@ def size(filepath):
 def is_exe(fpath):
     "Is `fpath' executable?"
     return os.path.exists(fpath) and os.access(fpath, os.X_OK)
-
 
 def which(program):
     """
