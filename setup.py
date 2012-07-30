@@ -25,7 +25,7 @@ setup(
         "Programming Language :: Python :: 2.6",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
-        "Development Status :: 4 - Beta",
+        "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Libraries"
         ],
