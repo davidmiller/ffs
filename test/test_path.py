@@ -2,8 +2,12 @@
 Unittests for ffs.path
 """
 import itertools
+import sys
 import tempfile
 import unittest
+
+if sys.version_info <  (2, 7):
+    import unittest2 as unittest
 
 from ffs.path import Path
 from ffs.nix import touch, rm

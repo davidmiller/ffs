@@ -2,8 +2,12 @@
 Unittests for the ffs.nix module
 """
 import os
+import sys
 import tempfile
 import unittest
+
+if sys.version_info <  (2, 7):
+    import unittest2 as unittest
 
 from ffs import nix, Path
 
