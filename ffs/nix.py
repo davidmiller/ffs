@@ -129,7 +129,7 @@ def pwd():
 
     Prints the current working directory
     """
-    print getcwd()
+    print(getcwd())
     return
 
 def rm(*targets):
