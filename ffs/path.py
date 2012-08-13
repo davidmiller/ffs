@@ -8,6 +8,8 @@ import os
 import re
 import types
 
+from ffs import exceptions, nix, is_dir, is_file
+
 class Path(object):
     """
     Provide a pleasant
@@ -145,6 +147,42 @@ class Path(object):
             return True
         return False
 
+    def __iter__(self):
+        """
+        Path objects iterate differently depending on context.
+
+        If we are a directory, we iterate through Path objects
+        representing the contents of that directory.
+
+        If we represent a File, iteration returns one line at a time.
+
+        If we do not exist, we raise DoesNotExistError
+
+        Return: generator(str or Path)
+        Exceptions: DoesNotExist
+        """
+        if self.is_dir:
+
+            # !!! Find a more elegant way to do this please. It's Ugly.
+            def dirgen():
+                "Directory list generator"
+                for k in nix.ls(self._value):
+                    yield k
+            return dirgen()
+
+        elif self.is_file:
+            def filegen():
+                "File generator"
+                with self as fh:
+                    for line in fh:
+                        yield line
+
+            return filegen()
+
+        msg = 'The path {0} does not exist - not sure how to iterate'.format(self)
+        raise exceptions.DoesNotExistError(msg)
+
+
     def __add__(self, other):
         """
         Add a path and a string, else TypeError
@@ -185,6 +223,7 @@ class Path(object):
         Contextmanager code - if the path is a file, this should behave like
         with open(path) as foo:
         """
+        # !! Do something else if we are a directory!
         self._file = open(self._value)
         return self._file
 
@@ -208,6 +247,26 @@ class Path(object):
         Exceptions: None
         """
         return self._value[0] == '/'
+
+    @property
+    def is_dir(self):
+        """
+        Predicate property to determine if this is an existng directory
+
+        Return: bool
+        Exceptions: None
+        """
+        return is_dir(self._value)
+
+    @property
+    def is_file(self):
+        """
+        Predicate property to determine if this is an existng file
+
+        Return: bool
+        Exceptions: None
+        """
+        return is_file(self._value)
 
     @property
     def _split(self):

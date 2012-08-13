@@ -2,6 +2,7 @@
 Unittests for ffs.path
 """
 import itertools
+import os
 import sys
 import tempfile
 import unittest
@@ -9,16 +10,19 @@ import unittest
 if sys.version_info <  (2, 7):
     import unittest2 as unittest
 
+from ffs import exceptions
 from ffs.path import Path
-from ffs.nix import touch, rm
+from ffs.nix import touch, rm, rm_r, rmdir
 
 class PathTestCase(unittest.TestCase):
     def setUp(self):
         tmpath = self.tmpath = tempfile.mktemp()
+        self.tdir = tempfile.mkdtemp()
         touch(tmpath)
 
     def tearDown(self):
         rm(self.tmpath)
+        rm_r(self.tdir)
 
     def test_repr(self):
         "Print like a str"
@@ -26,9 +30,9 @@ class PathTestCase(unittest.TestCase):
 
     def test_eq(self):
         "Can we test equality against strings?"
-        self.assertEqual(   '/foo/bar',        Path('/foo/bar'))
-        self.assertEqual(   Path('/foo/bar'),  Path('/foo/bar'))
-        self.assertNotEqual('/foo/bar/baz',    Path('/foo/bar'))
+        self.assertEqual('/foo/bar', Path('/foo/bar'))
+        self.assertEqual(Path('/foo/bar'), Path('/foo/bar'))
+        self.assertNotEqual('/foo/bar/baz', Path('/foo/bar'))
 
     def test_hash(self):
         "Hashing should equate to the _value"
@@ -69,12 +73,32 @@ class PathTestCase(unittest.TestCase):
         with self.assertRaises(IndexError):
             p[4] = 'car'
 
-    def test_iter(self):
-        "Iterate through components"
-        p = Path('/foo/bar/baz.txt')
-        i = ['foo', 'bar', 'baz.txt']
+    def test_iter_file(self):
+        "Iterate through lines in a file"
+        with open(self.tmpath, 'w') as tf:
+            tf.write("foo\nbar\nbaz\n")
+        p = Path(self.tmpath)
+        i = ['foo\n', 'bar\n', 'baz\n']
         for branch, expected in itertools.izip(p, i):
             self.assertEqual(expected, branch)
+
+    def test_iter_dir(self):
+        "Iterate through lines in a file"
+        p = Path(self.tdir)
+        touch(p + 'foo.txt')
+        touch(p + 'bar.txt')
+        i = ['foo.txt', 'bar.txt']
+        for branch, expected in itertools.izip(p, i):
+            self.assertEqual(expected, branch)
+
+    def test_iter_raises(self):
+        "Iterate through lines in a file"
+        nopath = tempfile.mkdtemp()
+        rmdir(nopath)
+        p = Path(nopath)
+        with self.assertRaises(exceptions.DoesNotExistError):
+            for branch in p:
+                raise AssertionError("Shouldn't get this far")
 
     def test_contains(self):
         "Test x in Path syntax"
@@ -130,6 +154,16 @@ class PathTestCase(unittest.TestCase):
         ap = Path('/foo/bar.txt')
         self.assertFalse(p.is_abspath)
         self.assertTrue(ap.is_abspath)
+
+    def test_isdir(self):
+        "Directory predicate"
+        p = Path(self.tdir)
+        self.assertTrue(p.is_dir)
+
+    def test_isfile(self):
+        "File predicate"
+        p = Path(self.tmpath)
+        self.assertTrue(p.is_file)
 
     def test_split(self):
         "Split should ignore leading /"
