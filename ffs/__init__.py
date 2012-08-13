@@ -6,10 +6,13 @@ import errno
 import os
 import sys
 
+from ffs import exceptions
+from ffs.filesystem import is_dir, is_file
 from ffs.nix import (cd, chmod, chown, cmp,
                      cp, cp_r,
                      getwd,
                      ln, ln_s,
+#                     ls,
                      mkdir, mkdir_p, mv,
                      pwd,
                      rm, rmdir, rm_r,
@@ -26,6 +29,8 @@ else:
     OS = "LINUX!"
 
 __all__ = [
+    # Modules
+    'exceptions',
     # Nix helpers
     'cd',
     'chmod',
@@ -49,6 +54,8 @@ __all__ = [
     'which',
     # Predicates
     'is_exe',
+    'is_dir',
+    'is_file',
     # Path
     'Path',
     ]

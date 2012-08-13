@@ -87,6 +87,25 @@ class HeadTestCase(unittest.TestCase):
         self.assertEqual(expected, frist10)
         self.assertEqual(expected5, frist5)
 
+class LsTestCase(unittest.TestCase):
+    def setUp(self):
+        self.tdir = tempfile.mkdtemp()
+        p = Path(self.tdir)
+        nix.touch(p + 'foo.txt')
+        nix.touch(p + 'bar.txt')
+
+    def tearDown(self):
+        nix.rm_r(self.tdir)
+
+    def test_ls(self):
+        "list files in dir"
+        self.assertEqual(['foo.txt', 'bar.txt'], nix.ls(self.tdir))
+
+    def test_ls_path(self):
+        "list files in dir"
+        self.assertEqual(['foo.txt', 'bar.txt'], nix.ls(Path(self.tdir)))
+
+        #!!! Test dotfiles behaviour
 
 
 if __name__ == '__main__':

@@ -48,6 +48,7 @@ class cd(object):
         os.chdir(self.startdir)
         return
 
+
 def chmod(path, mode):
     """
     Change the access permissions of a file.
@@ -99,6 +100,29 @@ ln = os.link
 ln_s = os.symlink
 
 # ::ln_sf (FileUtils)
+
+def ls(path):
+    """
+    Python translation of *nix ls
+
+    Returns a list of strings representing files and directories
+    contained by PATH.
+
+    The list will never contain the special entries '.' and '..' even
+    if they are present in the directory.
+
+    By default, the list is in arbitrary order and directories or files
+    beginning with '.' are omitted.
+
+    Arguments:
+    - `path`: str or Path
+
+    Return: list[str]
+    Exceptions:None
+    """
+    # !!! expand to include other ls flags
+    return [f for f in os.listdir(str(path)) if f[0] != '.']
+
 
 mkdir = os.mkdir
 
@@ -203,3 +227,16 @@ def is_exe(fpath):
     Exceptions: None
     """
     return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+
+def is_file(path):
+    """
+    Predicate to determine if PATH is a file
+
+    Arguments:
+    - `path`: str or Path
+
+    Return: bool
+
+    Exceptions: None
+    """
+    return os.path.isfile(str(path))
