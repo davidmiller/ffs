@@ -6,7 +6,7 @@ import errno
 import os
 import sys
 
-from ffs import exceptions
+from ffs import exceptions, nixargs
 from ffs.filesystem import is_dir, is_file
 from ffs.nix import (cd, chmod, chown, cmp,
                      cp, cp_r,
@@ -31,6 +31,7 @@ else:
 __all__ = [
     # Modules
     'exceptions',
+    'nixargs',
     # Nix helpers
     'cd',
     'chmod',

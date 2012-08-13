@@ -148,6 +148,11 @@ class PathTestCase(unittest.TestCase):
             self.assertIsInstance(fh, file)
             self.assertEqual('r', fh.mode)
 
+    def test_contextmanager_dir(self):
+        "With dir should change directory"
+        with Path(self.tdir):
+            self.assertEqual(self.tdir, os.getcwd())
+
     def test_abspath(self):
         "Abspath predicate"
         p = Path('foo/bar.txt')

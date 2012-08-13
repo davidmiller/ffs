@@ -44,6 +44,3 @@ def argmap(dikt):
         return argpuller
 
     return argparsing
-
-
-

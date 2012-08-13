@@ -15,15 +15,18 @@ class Path(object):
     Provide a pleasant
     API for working with file/directory paths.
     """
-    __slots__ = ['_value', '_file']
+    __slots__ = ['_value', '_file', '_startdir']
 
     def __init__(self, value=''):
         """
         As str objects are immutable, we must store the 'value'
         as an instance variable
         """
-        self._file = None
         self._value = value
+        # These are used by contextmanagers possibly
+        self._file = None
+        self._startdir = None
+
         return
 
     def __repr__(self):
@@ -163,11 +166,10 @@ class Path(object):
         """
         if self.is_dir:
 
-            # !!! Find a more elegant way to do this please. It's Ugly.
             def dirgen():
                 "Directory list generator"
                 for k in nix.ls(self._value):
-                    yield k
+                    yield Path(k)
             return dirgen()
 
         elif self.is_file:
@@ -222,20 +224,30 @@ class Path(object):
         """
         Contextmanager code - if the path is a file, this should behave like
         with open(path) as foo:
+
+        If this is a directory, it should cd there and then return
         """
-        # !! Do something else if we are a directory!
-        self._file = open(self._value)
-        return self._file
+        if self.is_file:
+            self._file = open(self._value)
+            return self._file
+        elif self.is_dir:
+            self._startdir = nix.getwd()
+            nix.cd(self)
+            return
 
     def __exit__(self, exc_type, exc_value, traceback):
         """
         Contextmanager handling.
         Exit from opening the path
         """
-        try:
-            self._file.close()
-        finally:
-            self._file = None
+        if self.is_file:
+            try:
+                self._file.close()
+            finally:
+                self._file = None
+        elif self.is_dir:
+            nix.cd(self._startdir)
+            self._startdir = None
         return
 
     @property
