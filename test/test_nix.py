@@ -99,11 +99,15 @@ class LsTestCase(unittest.TestCase):
 
     def test_ls(self):
         "list files in dir"
-        self.assertEqual(['foo.txt', 'bar.txt'], nix.ls(self.tdir))
+        contents = nix.ls(self.tdir)
+        contents.sort()
+        self.assertEqual(['bar.txt', 'foo.txt'], contents)
 
     def test_ls_path(self):
         "list files in dir"
-        self.assertEqual(['foo.txt', 'bar.txt'], nix.ls(Path(self.tdir)))
+        contents = nix.ls(Path(self.tdir))
+        contents.sort()
+        self.assertEqual(['bar.txt', 'foo.txt'], contents)
 
         #!!! Test dotfiles behaviour
 

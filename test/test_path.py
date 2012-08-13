@@ -88,8 +88,8 @@ class PathTestCase(unittest.TestCase):
         touch(p + 'foo.txt')
         touch(p + 'bar.txt')
         i = ['foo.txt', 'bar.txt']
-        for branch, expected in itertools.izip(p, i):
-            self.assertEqual(expected, branch)
+        for branch in p:
+            self.assertIn(branch, i)
 
     def test_iter_raises(self):
         "Iterate through lines in a file"
