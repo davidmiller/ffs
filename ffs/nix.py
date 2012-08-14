@@ -186,7 +186,7 @@ def touch(fname):
 
     Create a file at FNAME if one does not exist
     """
-    with open(fname, 'a'):
+    with open(str(fname), 'a'):
         pass
     return
 

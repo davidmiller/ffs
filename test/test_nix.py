@@ -111,6 +111,28 @@ class LsTestCase(unittest.TestCase):
 
         #!!! Test dotfiles behaviour
 
+class TouchTestCase(unittest.TestCase):
+    def setUp(self):
+        self.tdir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        nix.rm_r(self.tdir)
+
+    def test_touches(self):
+        "Create a file"
+        filepath = self.tdir + '/foo.txt'
+        nix.touch(filepath)
+        self.assertTrue(os.path.isfile(filepath))
+
+    def test_touch_path(self):
+        "Create from a Path object"
+        filestr = self.tdir + '/foo.txt'
+        filepath = Path(filestr)
+        nix.touch(filepath)
+        self.assertTrue(os.path.isfile(filestr))
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
