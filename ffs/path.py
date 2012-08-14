@@ -221,6 +221,36 @@ class Path(object):
         self._value = '{0}{1}'.format(frist, os.sep.join(branches))
         return self
 
+    def __lshift__(self, contents):
+        """
+        We overload the << operator to allow us easy file writing according to the
+        following rules:
+
+        If we are a directory, raise TypeError.
+        If CONTENTS is not a StringType, raise TypeError.
+
+        Otherwise, treat SELF like a file and append CONTENTS to it.
+
+        Note::
+
+            If components of the path leading to SELF do not exist,
+            they will be created. It is assumed that the user knows their
+            own mind.
+
+        Arguments:
+        - `contents`: StringType
+
+        Return: None
+        Exceptions: TypeError
+        """
+        if self.is_dir:
+            raise TypeError("You can't write to a directory Larry... ")
+        if not isinstance(contents, types.StringType):
+            raise TypeError("You have to write with a StringType Larry... ")
+        with self.open('a') as fh:
+            fh.write(contents)
+        return
+
     def __enter__(self):
         """
         Contextmanager code - if the path is a file, this should behave like
@@ -297,14 +327,26 @@ class Path(object):
     @contextlib.contextmanager
     def open(self, mode):
         """
-        Open the file at self, in the mode specified
+        Contextmanager to open SELF in the mode specified.
+
+        If SELF is a directory, raise TypeError
+
+        Note::
+
+            If components of the path leading to SELF do not exist,
+            they will be created. It is assumed that the user knows their
+            own mind.
 
         Arguments:
         - `mode`: str
 
         Return: file
-        Exceptions: None
+        Exceptions: TypeError
         """
+        if self.is_dir:
+            raise TypeError("Opening a directory doesn't really mean anything Larry... ")
+        if not is_dir(self[:-1]):
+            nix.mkdir_p(self[:-1])
         with open(self._value, mode) as fh:
             yield fh
 

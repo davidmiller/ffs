@@ -143,6 +143,27 @@ class PathTestCase(unittest.TestCase):
             p = Path('/foo/bar')
             np = p + []
 
+    def test_lshift_dir(self):
+        "Should raise a Type Error (can't write to a dir)"
+        p = Path(self.tdir)
+        with self.assertRaises(TypeError):
+            p << "Hello Beautiful"
+
+    def test_lshift_notstring(self):
+        "Should raise TypeError. Can only write strings"
+        cases = [123, 12.3, {'hai': 'bai'}, object()]
+        p = Path()
+        for case in cases:
+            with self.assertRaises(TypeError):
+                p << case
+
+    def test_lshift_write(self):
+        "Should append to the file"
+        p = Path(self.tmpath)
+        p << "Hello Beautiful"
+        contents = open(self.tmpath).read()
+        self.assertEqual("Hello Beautiful", contents)
+
     def test_contextmanager_file(self):
         "With path should behave like open"
         with Path(self.tmpath) as fh:
@@ -184,6 +205,23 @@ class PathTestCase(unittest.TestCase):
         with Path(self.tmpath).open('w') as fh:
             self.assertIsInstance(fh, file)
             self.assertEqual('w', fh.mode)
+
+    def test_open_isdir(self):
+        "If we open a directory it should raise"
+        with self.assertRaises(TypeError):
+            with Path(self.tdir).open('w') as fh:
+                pass # Should have raised by now
+
+    def test_open_mkpath(self):
+        "If we open a path that doesn't exist yet, make it"
+        nopath = tempfile.mkdtemp()
+        rmdir(nopath)
+        p = Path(nopath) + 'really/doesnt/exist.txt'
+        filename = nopath + '/really/doesnt/exist.txt'
+        with p.open('w') as fh:
+            self.assertIsInstance(fh, file)
+            self.assertEqual(filename, fh.name)
+        pass
 
     def test_dict_key(self):
         "Should be able to dict(Path()=5)"
