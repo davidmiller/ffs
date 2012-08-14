@@ -6,6 +6,7 @@ Pathname API
 import contextlib
 import os
 import re
+import tempfile
 import types
 
 from ffs import exceptions, nix, is_dir, is_file
@@ -191,7 +192,7 @@ class Path(object):
         """
         if not isinstance(other, types.StringType):
             raise TypeError
-        return (os.sep.join([self._value, other]))
+        return Path(os.sep.join([self._value, other]))
 
     def __iadd__(self, other):
         """
@@ -307,3 +308,34 @@ class Path(object):
         with open(self._value, mode) as fh:
             yield fh
 
+    @classmethod
+    @contextlib.contextmanager
+    def temp(klass):
+        """
+        Create a temporary path within a contextmanager block
+        which will be automatically deleted when we exit the block
+
+        Return: Path
+        Exceptions: None
+        """
+        tmpath = tempfile.mkdtemp()
+        yield klass(tmpath)
+        nix.rm_r(tmpath)
+
+    def ls(self):
+        """
+        If we are a directory, return an iterable of the contents.
+
+        If we are a file, return the name.
+
+        If we don't exist, raise DoesNotExistError.
+
+        Return: iterable or string
+        Exceptions: DoesNotExistError
+        """
+        if self.is_file:
+            return self._value
+        elif self.is_dir:
+            return nix.ls(self)
+        msg = "Cannot access {0}: No such file or directory".format(self)
+        raise exceptions.DoesNotExistError(msg)

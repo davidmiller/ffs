@@ -135,6 +135,7 @@ class PathTestCase(unittest.TestCase):
         p = Path('/foo/bar')
         newpath = p + 'baz.txt'
         self.assertEqual('/foo/bar/baz.txt', newpath)
+        self.assertIsInstance(newpath, Path)
 
     def test_add_notstring(self):
         "Raise if we add a non string, non path"
@@ -192,7 +193,40 @@ class PathTestCase(unittest.TestCase):
         mydict['/foo'] = 2
         self.assertEqual(2, mydict['/foo'])
 
+    def test_temp_contextmanager(self):
+        "should yeild a path that exists"
+        with Path.temp() as p:
+            val = str(p)
+            self.assertTrue(os.path.exists(val))
+            self.assertTrue(os.path.isdir(val))
+        self.assertFalse(os.path.isdir(val))
+        self.assertFalse(os.path.exists(val))
 
+    def test_with_tmp_contents(self):
+        "Should kill directory contents"
+        with Path.temp() as p:
+            val = str(p)
+            touch(p + 'my.txt')
+            self.assertTrue(os.path.exists(str(p + 'my.txt')))
+        self.assertFalse(os.path.exists(val))
+
+    def test_ls(self):
+        "Should list dir contents"
+        p = Path(self.tdir)
+        self.assertEqual([], p.ls())
+
+    def test_lsfile(self):
+        "Just returns the name"
+        p = Path(self.tmpath)
+        self.assertEqual(self.tmpath, p.ls())
+
+    def test_ls_nonexistant(self):
+        "Should raise if we don't exist"
+        nopath = tempfile.mkdtemp()
+        rmdir(nopath)
+        p = Path(nopath)
+        with self.assertRaises(exceptions.DoesNotExistError):
+            p.ls()
 
 if __name__ == '__main__':
     unittest.main()
