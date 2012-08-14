@@ -9,6 +9,8 @@ import unittest
 if sys.version_info <  (2, 7):
     import unittest2 as unittest
 
+from mock import patch
+
 from ffs import nix, Path
 
 class CDTestCase(unittest.TestCase):
@@ -65,6 +67,68 @@ class ChmodTestCase(unittest.TestCase):
         nix.chmod(Path(self.tname), 0644)
         self.assertEqual(33188, os.stat(self.tname).st_mode)
 
+class ChownTestCase(unittest.TestCase):
+    def setUp(self):
+        with tempfile.NamedTemporaryFile(delete=False) as tf:
+            self.tname = tf.name
+
+    def tearDown(self):
+        os.remove(self.tname)
+
+    def test_chown_badargs(self):
+        "Raise if nonsense args"
+        starargs = [
+            dict(uid=100, user='foo'),
+            {},
+            dict(gid= -1, group='users'),
+            dict(gid=10, uid=20, user='root')
+            ]
+        for case in starargs:
+            with self.assertRaises(ValueError):
+                nix.chown('/foo', **case)
+
+    def test_chown_user(self):
+        "Use named user"
+        with patch.object(nix.pwdb, 'getpwnam') as ppwd:
+            ppwd.return_value =  [None, None, 100]
+            with patch.object(nix.os, 'chown') as pchown:
+                nix.chown('/hai', user='larry')
+                pchown.assert_called_once_with('/hai', 100, -1)
+                ppwd.assert_called_once_with('larry')
+
+    def test_chown_group(self):
+        "Use named user"
+        with patch.object(nix.grp, 'getgrnam') as pgrp:
+            pgrp.return_value =  [None, None, 100]
+            with patch.object(nix.os, 'chown') as pchown:
+                nix.chown('/hai', group='larry')
+                pchown.assert_called_once_with('/hai', -1, 100)
+                pgrp.assert_called_once_with('larry')
+
+    def test_chown_gid(self):
+        "Use group id"
+        with patch.object(nix.os, 'chown') as pchown:
+            nix.chown('/hai', gid=100)
+            pchown.assert_called_once_with('/hai', -1, 100)
+
+    def test_chown_uid(self):
+        "Use user id"
+        with patch.object(nix.os, 'chown') as pchown:
+            nix.chown('/hai', uid=100)
+            pchown.assert_called_once_with('/hai', 100, -1)
+
+    def test_chown_path(self):
+        "Can we chown a path?"
+        with patch.object(nix.os, 'chown') as pchown:
+            nix.chown(Path('/hai'), uid = 100)
+            pchown.assert_called_once_with('/hai', 100, -1)
+
+    def test_chown_str(self):
+        "Can we chown a path?"
+        with patch.object(nix.os, 'chown') as pchown:
+            nix.chown('/hai', uid = 100)
+            pchown.assert_called_once_with('/hai', 100, -1)
+
 
 class HeadTestCase(unittest.TestCase):
 
@@ -110,6 +174,20 @@ class LsTestCase(unittest.TestCase):
         self.assertEqual(['bar.txt', 'foo.txt'], contents)
 
         #!!! Test dotfiles behaviour
+
+class MkdirPTestCase(unittest.TestCase):
+    def setUp(self):
+        self.nopath = tempfile.mkdtemp()
+        nix.rmdir(self.nopath)
+
+    def tearDown(self):
+        nix.rm_r(self.nopath)
+
+    def test_mkdirp_path(self):
+        "Should accept Path objects"
+        p = Path(self.nopath) + 'some/long/structure'
+        nix.mkdir_p(p)
+        self.assertTrue(os.path.isdir(self.nopath + '/some/long/structure'))
 
 class TouchTestCase(unittest.TestCase):
     def setUp(self):

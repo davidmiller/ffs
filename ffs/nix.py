@@ -4,7 +4,9 @@
 import contextlib
 import errno
 import filecmp
+import grp
 import os
+import pwd as pwdb
 import shutil
 
 class cd(object):
@@ -48,7 +50,7 @@ class cd(object):
         os.chdir(self.startdir)
         return
 
-
+# !!! Allow symbolic permissions
 def chmod(path, mode):
     """
     Change the access permissions of a file.
@@ -65,7 +67,51 @@ def chmod(path, mode):
 
 # ::chmod_R (FileUtils)
 
-chown = os.chown
+def chown(path, user=None, group=None, uid=None, gid=None):
+    """
+    Python translation of the *nix chown command.
+
+    When given either a user, a group, or both, change PATH to be owned
+    by that user/group/both.
+
+    These can be specified by string via USER and GROUP or by numeric id
+    via UID and GID.
+
+    If both USER and UID or both GROUP and GID are passed, raise ValueError
+    as we have no way of knowing what you meant.
+
+    If none of USER, UID, GROUP, GID are passed, raise ValueError as this is
+    nonsense, and you should be alerted to this so that you can stop doing it.
+
+    Arguments:
+    - `path`: str or Path
+    - `user`: str
+    - `group`: str
+    - `uid`: int
+    - `gid`: int
+
+    Return: None
+    Exceptions: ValueError
+    """
+    if len([x for x in [user, group, uid, gid] if x is None]) == 4:
+        msg = "You haven't given a group or user to change to Larry... "
+        raise ValueError(msg)
+    if user and uid:
+        raise ValueError("It doesn't make sense to set USER and UID Larry... ")
+    if group and gid:
+        raise ValueError("It doesn't make sense to set GROUP and GID Larry... ")
+
+    _uid, _gid = -1, -1
+    if uid is not None:
+        _uid = uid
+    if gid is not None:
+        _gid = gid
+    if user is not None:
+        _uid = pwdb.getpwnam(user)[2]
+    if group is not None:
+        _gid = grp.getgrnam(group)[2]
+    os.chown(str(path), _uid, _gid)
+    return
 
 # ::chown_R (FileUtils)
 
@@ -75,6 +121,7 @@ cp_r = shutil.copytree
 
 getwd = os.getcwd
 
+# !!! Should accept Path
 def head(filename, lines=10):
     """
     Python port of the *nix head command.
@@ -95,8 +142,10 @@ def head(filename, lines=10):
 
 # ::install (FileUtils)
 
+# !!! Wrap to accept Path objects
 ln = os.link
 
+# !!! Wrap to accept Path objects
 ln_s = os.symlink
 
 # ::ln_sf (FileUtils)
@@ -124,6 +173,8 @@ def ls(path):
     return [f for f in os.listdir(str(path)) if f[0] != '.']
 
 
+# !!! Allow Path objects
+# !!! Expand to include flags (parents, mode, context verbose)
 mkdir = os.mkdir
 
 def mkdir_p(path):
@@ -133,18 +184,19 @@ def mkdir_p(path):
     Will create all components in `path` which do not exist.
 
     Arguments:
-    - `path`: str
+    - `path`: str or Path
 
     Return: None
     Exceptions: Exception
     """
     try:
-        os.makedirs(path)
+        os.makedirs(str(path))
     except OSError as exc: # Python >2.5
         if exc.errno == errno.EEXIST:
             pass
         else: raise
 
+# !!! Wrap to accept path objects
 mv = shutil.move
 
 def pwd():
@@ -156,6 +208,7 @@ def pwd():
     print(getcwd())
     return
 
+# !!! Wrap to accept Path
 def rm(*targets):
     """
     API wrapper to get closer to the *nix
@@ -173,11 +226,15 @@ def rm(*targets):
 
 # ::rm_f (FileUtils)
 
+# !!! Wrap to accept Path
 rm_r = shutil.rmtree
 
 # ::rm_rf (FileUtils)
 
+# !!! Wrap to accept Path
 rmdir = os.rmdir
+
+# !!! Wrap to accept Path
 stat = os.stat
 
 def touch(fname):
@@ -185,6 +242,12 @@ def touch(fname):
     Python port of the Unix touch command
 
     Create a file at FNAME if one does not exist
+
+    Arguments:
+    - `path`: str or Path
+
+    Return: None
+    Exceptions: Exception
     """
     with open(str(fname), 'a'):
         pass
