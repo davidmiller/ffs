@@ -121,7 +121,6 @@ cp_r = shutil.copytree
 
 getwd = os.getcwd
 
-# !!! Should accept Path
 def head(filename, lines=10):
     """
     Python port of the *nix head command.
@@ -130,13 +129,13 @@ def head(filename, lines=10):
     Defaults to 10 lines.
 
     Arguments:
-    - `filename`: str
+    - `filename`: str or Path
     - `lines`: int
 
     Return: str
     Exceptions: None
     """
-    with open(filename) as fh:
+    with open(str(filename)) as fh:
         return "".join(fh.readlines()[:lines])
 
 
@@ -150,9 +149,10 @@ ln_s = os.symlink
 
 # ::ln_sf (FileUtils)
 
-def ls(path):
+# !!! expand to include other ls flags
+def ls(path, all=None, almost_all=None, ignore_backups=None):
     """
-    Python translation of *nix ls
+    Python translation of GNU ls
 
     Returns a list of strings representing files and directories
     contained by PATH.
@@ -163,19 +163,52 @@ def ls(path):
     By default, the list is in arbitrary order and directories or files
     beginning with '.' are omitted.
 
+    If ALL is truthy, we will not ignore entries starting in '.'
+    If ALMOST_ALL is truthy we will not list the implied '.' and '..'
+    ALL takes precedence over ALMOST_ALL. Take it up with Stallman.
+    If IGNORE_BACKUPS is truthy, we will ignore entries starting in '~'
+    IGNORE_BACKUPS takes precedence over ALL. Again, take it up with Stallman.
+
     Arguments:
     - `path`: str or Path
+    - `all`: bool
+    - `almost_all`: bool
+    - `ignore_backups`: bool
 
     Return: list[str]
     Exceptions:None
     """
-    # !!! expand to include other ls flags
-    return [f for f in os.listdir(str(path)) if f[0] != '.']
+    entries = os.listdir(str(path))
+    if all is None and almost_all is None:
+        entries = [f for f in entries if f[0] != '.']
+    if all:
+        entries += ['.', '..']
+    if ignore_backups:
+        entries = [e for e in entries if e[-1] != '~']
+    return entries
 
+# !!! Add SELinux context
+# !!! add mode argument
+def mkdir(*paths,**kw):
+    """
+    Python translation of GNU mkdir.
 
-# !!! Allow Path objects
-# !!! Expand to include flags (parents, mode, context verbose)
-mkdir = os.mkdir
+    Make the directories passed as *PATHS.
+    If PARENTS is truthy, make parent directories as needed.
+
+    Arguments:
+    - `paths`: str or Path
+    - `parents`: bool
+
+    Return: None
+    Exceptions: None
+    """
+    print paths, kw
+    fn = 'parents' in kw and mkdir_p or os.mkdir
+    for path in paths:
+        print path, fn
+        fn(str(path))
+    return
 
 def mkdir_p(path):
     """

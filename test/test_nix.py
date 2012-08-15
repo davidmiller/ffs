@@ -151,6 +151,14 @@ class HeadTestCase(unittest.TestCase):
         self.assertEqual(expected, frist10)
         self.assertEqual(expected5, frist5)
 
+    def test_path(self):
+        "Should take Path objects"
+        expected = "\n".join([str(x) for x in range(10)]) + "\n"
+        frist = nix.head(Path(self.tname))
+        self.assertEqual(expected, frist)
+
+
+
 class LsTestCase(unittest.TestCase):
     def setUp(self):
         self.tdir = tempfile.mkdtemp()
@@ -173,7 +181,93 @@ class LsTestCase(unittest.TestCase):
         contents.sort()
         self.assertEqual(['bar.txt', 'foo.txt'], contents)
 
-        #!!! Test dotfiles behaviour
+    def test_ls_dotfile(self):
+        "Shouldn't see dotfiles"
+        nix.touch(Path(self.tdir) + '.dotrc')
+        self.assertTrue(os.path.isfile(self.tdir + '/.dotrc'))
+        contents = nix.ls(Path(self.tdir))
+        contents.sort()
+        self.assertEqual(['bar.txt', 'foo.txt'], contents)
+
+    def test_ls_all(self):
+        "Should see dotfiles"
+        nix.touch(Path(self.tdir) + '.dotrc')
+        self.assertTrue(os.path.isfile(self.tdir + '/.dotrc'))
+        contents = nix.ls(self.tdir, all=True)
+        contents.sort()
+        self.assertEqual(['.', '..', '.dotrc', 'bar.txt', 'foo.txt'], contents)
+
+    def test_ls_almost_all(self):
+        "Should see most dotfiles"
+        nix.touch(Path(self.tdir) + '.dotrc')
+        self.assertTrue(os.path.isfile(self.tdir + '/.dotrc'))
+        contents = nix.ls(self.tdir, almost_all=True)
+        contents.sort()
+        self.assertEqual(['.dotrc', 'bar.txt', 'foo.txt'], contents)
+
+    def test_ls_ignore_backups(self):
+        "Should ignore ~ files"
+        nix.touch(Path(self.tdir) + 'dotrc~')
+        self.assertTrue(os.path.isfile(self.tdir + '/dotrc~'))
+        contents = nix.ls(self.tdir, ignore_backups=True)
+        contents.sort()
+        self.assertEqual(['bar.txt', 'foo.txt'], contents)
+
+    def test_ls_a_ignore_backups(self):
+        "Should ignore ~ files even with all"
+        nix.touch(Path(self.tdir) + 'dotrc~')
+        self.assertTrue(os.path.isfile(self.tdir + '/dotrc~'))
+        contents = nix.ls(self.tdir, ignore_backups=True, all=True)
+        contents.sort()
+        self.assertEqual(['.', '..', 'bar.txt', 'foo.txt'], contents)
+
+class MkdirTestCase(unittest.TestCase):
+    def setUp(self):
+        self.nodir = tempfile.mkdtemp()
+        nix.rmdir(self.nodir)
+
+    def tearDown(self):
+        try:
+            nix.rm_r(self.nodir)
+        except OSError:
+            pass
+
+    def test_mkdir_simple(self):
+        "Should make a directory"
+        self.assertFalse(os.path.exists(self.nodir))
+        nix.mkdir(self.nodir)
+        self.assertTrue(os.path.exists(self.nodir))
+
+    def test_mkdirs(self):
+        "Make all the directories"
+        second = tempfile.mkdtemp()
+        nix.rmdir(second)
+        self.assertFalse(os.path.exists(self.nodir))
+        self.assertFalse(os.path.exists(second))
+        try:
+            nix.mkdir(self.nodir, second)
+            self.assertTrue(os.path.exists(self.nodir))
+            self.assertTrue(os.path.exists(second))
+        finally:
+            try:
+                nix.rmdir(second)
+            except OSError:
+                pass
+
+    def test_mkdir_path(self):
+        "Should make a directory from a Path()"
+        self.assertFalse(os.path.exists(self.nodir))
+        nix.mkdir(Path(self.nodir))
+        self.assertTrue(os.path.exists(self.nodir))
+
+    def test_mkdir_parents(self):
+        "make all parent dirs"
+        self.assertFalse(os.path.exists(self.nodir))
+        p = Path(self.nodir) + 'child/leaves'
+        nix.mkdir(p, parents=True)
+        self.assertTrue(os.path.exists(self.nodir))
+
+
 
 class MkdirPTestCase(unittest.TestCase):
     def setUp(self):
