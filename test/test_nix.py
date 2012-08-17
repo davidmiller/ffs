@@ -1,6 +1,7 @@
 """
 Unittests for the ffs.nix module
 """
+import filecmp
 import os
 import sys
 import tempfile
@@ -316,7 +317,6 @@ class MkdirTestCase(unittest.TestCase):
         self.assertTrue(os.path.exists(self.nodir))
 
 
-
 class MkdirPTestCase(unittest.TestCase):
     def setUp(self):
         self.nopath = tempfile.mkdtemp()
@@ -330,6 +330,32 @@ class MkdirPTestCase(unittest.TestCase):
         p = Path(self.nopath) + 'some/long/structure'
         nix.mkdir_p(p)
         self.assertTrue(os.path.isdir(self.nopath + '/some/long/structure'))
+
+
+class RmTestCase(unittest.TestCase):
+
+    def setUp(self):
+        handle, self.newfile = tempfile.mkstemp()
+
+    def tearDown(self):
+        try:
+            os.remove(self.newfile)
+        except OSError:
+            pass # we succeeded
+
+    def test_rm(self):
+        "Remove a file"
+        self.assertTrue(os.path.exists(self.newfile))
+        nix.rm(self.newfile)
+        self.assertFalse(os.path.exists(self.newfile))
+
+    def test_rm_path(self):
+        "Remove a Path"
+        self.assertTrue(os.path.exists(self.newfile))
+        nix.rm(Path(self.newfile))
+        self.assertFalse(os.path.exists(self.newfile))
+
+
 
 class TouchTestCase(unittest.TestCase):
     def setUp(self):

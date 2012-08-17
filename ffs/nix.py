@@ -273,11 +273,9 @@ def pwd():
     print(getcwd())
     return
 
-# !!! Wrap to accept Path
 def rm(*targets):
     """
-    API wrapper to get closer to the *nix
-    rm utility.
+    Python translation of GNU rm
 
     Arguments:
     - `*targets`: all target paths
@@ -286,7 +284,7 @@ def rm(*targets):
     Exceptions: None
     """
     for target in targets:
-        os.remove(target)
+        os.remove(str(target))
     return
 
 # ::rm_f (FileUtils)
