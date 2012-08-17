@@ -223,6 +223,38 @@ class PathTestCase(unittest.TestCase):
             self.assertEqual(filename, fh.name)
         pass
 
+    def test_read(self):
+        "Should read the path"
+        nopath = tempfile.mkdtemp()
+        p = Path(nopath) + 'myfile.txt'
+        p << 'Contentz'
+        self.assertEqual('Contentz', p.read())
+
+    def test_read_dir(self):
+        "Reading a directory should raise"
+        p = Path(self.tdir)
+        with self.assertRaises(TypeError):
+            p.read()
+
+    def test_contents(self):
+        "Contents should be a property"
+        p = Path(self.tmpath)
+        p << 'Contentz'
+        self.assertEqual('Contentz', p.contents)
+
+    def test_contents_dir(self):
+        "list of files"
+        p = Path(self.tdir)
+        touch(p + 'myfile.txt')
+        self.assertEqual(['myfile.txt'], p.contents)
+
+    def test_contents_nopath(self):
+        "Should raise"
+        nopath = tempfile.mktemp()
+        #        os.remove(nopath)
+        with self.assertRaises(exceptions.DoesNotExistError):
+            Path(nopath).contents
+
     def test_dict_key(self):
         "Should be able to dict(Path()=5)"
         mydict = {Path('/foo'): 1}
@@ -266,5 +298,19 @@ class PathTestCase(unittest.TestCase):
         with self.assertRaises(exceptions.DoesNotExistError):
             p.ls()
 
+    def test_touch(self):
+        "Should touch it"
+        p = Path(self.tdir) + 'notyet.txt'
+        self.assertFalse(os.path.isfile(str(p)))
+        p.touch()
+        self.assertTrue(os.path.isfile(str(p)))
+
+    def test_touch_dir(self):
+        "Should raise TypeError"
+        self.assertTrue(os.path.isdir(self.tdir))
+        with self.assertRaises(TypeError):
+            Path(self.tdir).touch()
+
+# !!! Add a test for touch
 if __name__ == '__main__':
     unittest.main()

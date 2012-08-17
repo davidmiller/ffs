@@ -350,6 +350,40 @@ class Path(object):
         with open(self._value, mode) as fh:
             yield fh
 
+    def read(self):
+        """
+        Read the contents of the file SELF.
+
+        Allows us to duck-type as a file.
+
+        If SELF is a directory, raise TypeError.
+
+        Return: str
+        Exceptions: TypeError
+        """
+        if self.is_dir:
+            raise TypeError("Reading a directory doesn't make any sense Larry... ")
+        with self.open('r') as fh:
+            return fh.read()
+
+    @property
+    def contents(self):
+        """
+        The contents of SELF.
+
+        If SELF is a file, read the contents.
+        If SELF is a directory, alias of ls()
+
+        Return: str or list[str]
+        Exceptions: None
+        """
+        if self.is_dir:
+            return self.ls()
+        elif self.is_file:
+            return self.read()
+        msg = "{0} isn't a thing Larry - how can it have contents?"
+        raise exceptions.DoesNotExistError(msg)
+
     @classmethod
     @contextlib.contextmanager
     def temp(klass):
@@ -381,3 +415,21 @@ class Path(object):
             return nix.ls(self)
         msg = "Cannot access {0}: No such file or directory".format(self)
         raise exceptions.DoesNotExistError(msg)
+
+    def touch(self):
+        """
+        Equivalent to calling the *nix command touch on SELF.
+
+        Creates a file if one does not exist, otherwise, a no-op.
+
+        If self is a directory, raise TypeError
+
+        Return: None
+        Exceptions: TypeError
+        """
+        if self.is_dir:
+            raise TypeError("Can't touch() a directory!")
+        nix.touch(self)
+        return
+
+
