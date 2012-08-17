@@ -8,3 +8,6 @@ class Error(Exception):
 
 class DoesNotExistError(Error):
     "Something should have been here"
+
+class ExistsError(Error):
+    "Something already exisis"
