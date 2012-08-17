@@ -9,6 +9,8 @@ import os
 import pwd as pwdb
 import shutil
 
+from ffs import exceptions
+
 class cd(object):
     """
     Change directory to PATH. Mimics the *nix cd command
@@ -141,10 +143,40 @@ def head(filename, lines=10):
 
 # ::install (FileUtils)
 
-# !!! Wrap to accept Path objects
-ln = os.link
+def ln(src, dest, force=None, symbolic=None):
+    """
+    Python translation of GNU ln
 
-# !!! Wrap to accept Path objects
+    Create a link at SRC pointing to DEST.
+    If there is a file at DEST, raise ExistsError
+
+    If FORCE is truthy, remove any file at DEST.
+    If SYMBOLIC is truthy, make symbolic links instead of hard links.
+
+    Arguments:
+    - `src`:
+    - `dest`:
+    - `force`:
+    - `symbolic`
+
+    Return: None
+    Exceptions: ExistsError
+    """
+    if not force and os.path.exists(str(dest)):
+        raise exceptions.ExistsError(
+            '{0} already exists Larry... did you mean to force?')
+    if force and os.path.exists(str(dest)):
+        rm(dest)
+    if symbolic:
+        os.symlink(src, dest)
+    else:
+        os.link(str(src), str(dest))
+    return
+
+# # !!! Wrap to accept Path objects
+# ln = os.link
+
+# # !!! Wrap to accept Path objects
 ln_s = os.symlink
 
 # ::ln_sf (FileUtils)

@@ -11,7 +11,7 @@ if sys.version_info <  (2, 7):
 
 from mock import patch
 
-from ffs import nix, Path
+from ffs import exceptions, nix, Path
 
 class CDTestCase(unittest.TestCase):
     def setUp(self):
@@ -157,6 +157,54 @@ class HeadTestCase(unittest.TestCase):
         frist = nix.head(Path(self.tname))
         self.assertEqual(expected, frist)
 
+class LnTestCase(unittest.TestCase):
+    def setUp(self):
+        self.tdir = tempfile.mkdtemp()
+        self.src = self.tdir  + '/target'
+        nix.touch(self.src)
+
+    def tearDown(self):
+        nix.rm_r(self.tdir)
+
+    def test_ln(self):
+        "Should create a link"
+        dest = self.tdir + '/hardlink'
+        nix.ln(self.src, dest)
+        self.assertTrue(os.path.isfile(dest))
+        self.assertTrue(filecmp.cmp(self.src,  dest))
+        self.assertFalse(os.path.islink(dest))
+
+    def test_ln_path(self):
+        "Should link path objects"
+        dest = Path(self.tdir) + '/hardlink'
+        nix.ln(self.src, dest)
+        self.assertTrue(os.path.isfile(str(dest)))
+        self.assertTrue(filecmp.cmp(self.src, str(dest)))
+        self.assertFalse(os.path.islink(str(dest)))
+
+    def test_ln_dest_exists(self):
+        "Raise if dest exists"
+        dest = Path(self.tdir) + '/hardlink'
+        dest.touch()
+        with self.assertRaises(exceptions.ExistsError):
+            nix.ln(self.src, dest)
+
+    def test_force(self):
+        "Force for non-empty dest"
+        dest = Path(self.tdir) + '/hardlink'
+        dest << 'contentz'
+        self.assertEqual('contentz', dest.contents)
+        nix.ln(self.src, dest, force=True)
+        self.assertNotEqual('contentz', dest.contents)
+        self.assertTrue(os.path.isfile(str(dest)))
+        self.assertTrue(filecmp.cmp(self.src,  str(dest)))
+        self.assertFalse(os.path.islink(str(dest)))
+
+    def test_symbolic(self):
+        "Link should be symbolic"
+        dest = self.tdir + '/hardlink'
+        nix.ln(self.src, dest, symbolic=True)
+        self.assertTrue(os.path.islink(dest))
 
 
 class LsTestCase(unittest.TestCase):
