@@ -27,12 +27,18 @@ def _stringcoll(coll):
     return False
 
 
-class Path(object):
+# Normalization to clean up ../, . && //
+
+class Path(str):
     """
     Provide a pleasant
     API for working with file/directory paths.
     """
-    __slots__ = ['_value', '_file', '_startdir']
+    #    __slots__ = ['_value', '_file', '_startdir']
+
+    # !!! Path() should be curdir
+    # !!! Accept collections
+    # !!! Accept multiple components of initial value
 
     def __init__(self, value=''):
         """
@@ -126,11 +132,19 @@ class Path(object):
 
         # If we asked for [:int] and we're an abspath, prepend it
         if isinstance(key, types.SliceType):
-            if key.start is None and key.stop:
+            if key.start in [None, 0] and key.stop:
                 frist = '{0}{1}'.format('/' if self.is_abspath else '', interesting[0])
                 interesting[0] = frist
 
         return Path(os.sep.join(interesting))
+
+    def __getslice__(self, *args):
+        """
+        As we're subclassing String, we have to override getslice.
+        This is a backwards compatibility hack, we just delegate to the
+        more modern getitem.
+        """
+        return self.__getitem__(slice(*args))
 
     def __setitem__(self, key, value):
         """
@@ -244,7 +258,7 @@ class Path(object):
         if not isinstance(other, types.StringType):
             raise TypeError
         self._value += '{0}{1}'.format(os.sep, other)
-        return self
+        return Path(self._value)
 
     def __radd__(self, other):
         """
@@ -260,7 +274,9 @@ class Path(object):
             frist = ''
         branches = [b for b in other.split(os.sep) + self._split if b]
         self._value = '{0}{1}'.format(frist, os.sep.join(branches))
-        return self
+        return Path(self._value)
+
+    # !!! Overload / to be path addition if the other is a reasonable type
 
     def __lshift__(self, contents):
         """
@@ -322,6 +338,50 @@ class Path(object):
             self._startdir = None
         return
 
+    # Some of these make sense for a Path.
+    # Some frankly mean we're being duck typed way out as a str & we should
+    # just give it up.
+    #
+    # !!! String methods:
+    # capitalize
+    # center
+    # count
+    # decode
+    # encode
+    # expandtabs
+    # find
+    # format
+    # index
+    # isalnum
+    # isalpha
+    # isdigit
+    # islower
+    # isspace
+    # istitle
+    # isupper
+    # join
+    # ljust
+    # lower
+    # lstrip
+    # partition
+    # replace
+    # rfind
+    # rindex
+    # rjust
+    # rsplit
+    # rstrip
+    # split
+    # splitlines
+    # startswith
+    # strip
+    # swapcase
+    # title
+    # translate
+    # upper
+    # zfill
+    # isnumeric
+    # isdecimal
+
     @property
     def is_abspath(self):
         """
@@ -364,6 +424,8 @@ class Path(object):
             return self._value[1:].split(os.sep)
         return self._value.split(os.sep)
 
+    # !!! Parent
+    # !!! ext
 
     @contextlib.contextmanager
     def open(self, mode):

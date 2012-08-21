@@ -162,15 +162,15 @@ def ln(src, dest, force=None, symbolic=None):
     Return: None
     Exceptions: ExistsError
     """
-    if not force and os.path.exists(str(dest)):
+    if not force and os.path.exists(dest):
         raise exceptions.ExistsError(
-            '{0} already exists Larry... did you mean to force?')
-    if force and os.path.exists(str(dest)):
+            '{0} already exists Larry... did you mean to force?'.format(dest))
+    if force and os.path.exists(dest):
         rm(dest)
     if symbolic:
         os.symlink(src, dest)
     else:
-        os.link(str(src), str(dest))
+        os.link(src, dest)
     return
 
 # # !!! Wrap to accept Path objects

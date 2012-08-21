@@ -67,7 +67,7 @@ class PathTestCase(unittest.TestCase):
         self.assertEqual(p[0],   'foo')
         self.assertEqual(p[1:],  'bar/baz')
         self.assertEqual(p[:1],  '/foo')
-        self.assertEqual(p[0:2], 'foo/bar')
+        self.assertEqual(p[0:2], '/foo/bar')
         self.assertEqual(p[1:3], 'bar/baz')
         self.assertEqual(p[-1],  'baz')
 

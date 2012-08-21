@@ -177,7 +177,8 @@ class LnTestCase(unittest.TestCase):
 
     def test_ln_path(self):
         "Should link path objects"
-        dest = Path(self.tdir) + '/hardlink'
+        dest = Path(self.tdir)
+        dest += 'hardlink'
         nix.ln(self.src, dest)
         self.assertTrue(os.path.isfile(str(dest)))
         self.assertTrue(filecmp.cmp(self.src, str(dest)))
@@ -192,7 +193,7 @@ class LnTestCase(unittest.TestCase):
 
     def test_force(self):
         "Force for non-empty dest"
-        dest = Path(self.tdir) + '/hardlink'
+        dest = Path(self.tdir) + 'hardlink'
         dest << 'contentz'
         self.assertEqual('contentz', dest.contents)
         nix.ln(self.src, dest, force=True)
