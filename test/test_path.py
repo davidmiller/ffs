@@ -2,6 +2,7 @@
 Unittests for ffs.path
 """
 import itertools
+import json
 import os
 import sys
 import tempfile
@@ -294,6 +295,21 @@ class PathTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             p.readline()
 
+    def test_truncate(self):
+        "Should truncate a file"
+        p = Path(tempfile.mkdtemp()) + 'testfile.txt'
+        p << "Contentz"
+        self.assertTrue(p.size > 0)
+        p.truncate()
+        self.assertEqual(0, p.size)
+
+    def test_truncate_inappropriate(self):
+        "Should raise"
+        cases = [Path(self.tdir), Path(tempfile.mktemp())]
+        for case in cases:
+            with self.assertRaises(TypeError):
+                case.truncate()
+
     def test_read_dir(self):
         "Reading a directory should raise"
         p = Path(self.tdir)
@@ -373,6 +389,31 @@ class PathTestCase(unittest.TestCase):
         self.assertTrue(os.path.isdir(self.tdir))
         with self.assertRaises(TypeError):
             Path(self.tdir).touch()
+
+class JsonishTestCase(unittest.TestCase):
+    "Tests for the JSON operations"
+    def setUp(self):
+        tmpath = self.tmpath = tempfile.mktemp()
+        self.tdir = tempfile.mkdtemp()
+        touch(tmpath)
+
+    def tearDown(self):
+        rm(self.tmpath)
+        rm_r(self.tdir)
+
+    def test_loads(self):
+        "Can load a json file"
+        p = Path(self.tmpath)
+        jsonified = json.dumps(dict(foo=1))
+        p << jsonified
+        self.assertEqual(dict(foo=1), p.json_load())
+
+    def test_loads_inappropriate(self):
+        "Can load a json file"
+        cases = [Path(self.tdir), Path(tempfile.mktemp())]
+        for case in cases:
+            with self.assertRaises(TypeError):
+                case.json_load()
 
 if __name__ == '__main__':
     unittest.main()

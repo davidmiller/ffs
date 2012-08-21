@@ -7,12 +7,12 @@ import os
 import sys
 
 from ffs import exceptions, nixargs
-from ffs.filesystem import is_dir, is_file
+from ffs.filesystem import is_dir, is_file, hsize, size
 from ffs.nix import (cd, chmod, chown, cmp,
                      cp, cp_r,
                      getwd,
                      ln, ln_s,
-#                     ls,
+                     ls,
                      mkdir, mkdir_p, mv,
                      pwd,
                      rm, rmdir, rm_r,
@@ -57,42 +57,12 @@ __all__ = [
     'is_exe',
     'is_dir',
     'is_file',
+    # Filesystem helpers
+    'size',
+    'hsize',
     # Path
     'Path',
     ]
-
-def _defensive_dperms(filename):
-    """
-    Check that the permissions of `filename`'s directory are sane
-
-    Arguments:
-    - `filename`: str
-
-    Return: bool
-    Exceptions: None
-    """
-    filename = os.path.abspath(filename)
-    targetdir = os.path.dirname(filename)
-    if not os.path.isdir(targetdir):
-        return False
-    return True
-
-def _defensive_access(filepath):
-    """
-    Defensively check for access to filepath
-
-    Arguments:
-    - `filepath`: str
-
-    Return: bool
-    Exceptions: None
-     """
-    filepath = os.path.abspath(filepath)
-    if not _defensive_dperms(filepath):
-        return False
-    if not os.path.exists(filepath):
-        return False
-    return True
 
 def basen(path, num=1):
     """
@@ -133,36 +103,3 @@ def lsmtime(path, lessthan=None):
             if ts2dt(mtime)< lessthan:
                 ls.append(fpath)
         return ls
-
-def hsize(filepath):
-    """
-    Return the size of the file at `filepath` as a hex string
-    or None if the file does not exist/is not accessible, printing
-    an appropriate warning.
-
-    Arguments:
-    - `filepath`: str
-
-    Return: str
-    Exceptions: None
-    """
-    filename = os.path.abspath(filepath)
-    fsize = size(filepath)
-    if fsize:
-        return hex(fsize)
-    return None
-
-def size(filepath):
-    """
-    Return the integer value of the size of `filepath' in bytes
-
-    Arguments:
-    - `filepath`: str
-
-    Return: int
-    Exceptions: None
-    """
-    filename = os.path.abspath(filepath)
-    if not _defensive_access(filepath):
-        return None
-    return int(stat(filename).st_size)

@@ -4,12 +4,13 @@ ffs.path
 Pathname API
 """
 import contextlib
+import json
 import os
 import re
 import tempfile
 import types
 
-from ffs import exceptions, nix, is_dir, is_file
+from ffs import exceptions, nix, is_dir, is_file, size
 
 def _stringcoll(coll):
     """
@@ -503,6 +504,35 @@ class Path(str):
         except StopIteration:
             return ""
 
+    def truncate(self):
+        """
+        Duck-typing like a file
+
+        Truncate the file's size.
+
+        If SELF is a directory or does not exist, raise TypeError
+
+        Return: None
+        Exceptions: TypeError
+        """
+        if not self:
+            raise TypeError("Can't truncate something that doesn't exist Larry... ")
+        if self.is_dir:
+            raise TypeError("Can't truncate a directory Larry... ")
+        with self.open('w') as fh:
+            fh.truncate()
+        return
+
+    @property
+    def size(self):
+        """
+        Return the size of SELF in bytes
+
+        Return: int
+        Exceptions: DoesNotExistError
+        """
+        return size(self)
+
     @property
     def contents(self):
         """
@@ -568,3 +598,23 @@ class Path(str):
             raise TypeError("Can't touch() a directory!")
         nix.touch(self)
         return
+
+    def json_load(self):
+        """
+        Treat SELF as a file containing JSON serialized data.
+        Load that data and return it.
+
+        If SELF is a directory or does not exist, raise TypeError
+
+        Return: object
+        Exceptions: TypeError
+        """
+        if not self:
+            raise TypeError("Can't load something that doesn't exist Larry... ")
+        if self.is_dir:
+            raise TypeError("Can't tread a directory as JSON Larry... ")
+        return json.loads(self.contents)
+
+    # !!! json_dump()
+    # !!! pickle_load()
+    # !!! pickle_dump()
