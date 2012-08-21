@@ -424,6 +424,18 @@ class Path(str):
             return self._value[1:].split(os.sep)
         return self._value.split(os.sep)
 
+    @property
+    def abspath(self):
+        """
+        Return the absolute path represented by SELF.
+
+        Return: Path
+        Exceptions: None
+        """
+        if self.is_abspath:
+            return self
+        return Path(os.path.abspath(self))
+
     # !!! Parent
     # !!! ext
 

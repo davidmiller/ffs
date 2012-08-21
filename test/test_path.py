@@ -233,6 +233,15 @@ class PathTestCase(unittest.TestCase):
         self.assertEqual(expected, ap._split)
         self.assertEqual(expected, p._split)
 
+    def test_abspath(self):
+        "Propertize the absolute path please"
+        cases = [
+            ('foo/bar.txt', os.getcwd() + '/foo/bar.txt'),
+            ('/foo/bar.txt', '/foo/bar.txt')
+            ]
+        for p, absolute in cases:
+            self.assertEqual(absolute, Path(p).abspath)
+
     def test_open(self):
         "path.open allows modes to be passed"
         with Path(self.tmpath).open('w') as fh:
