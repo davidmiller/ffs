@@ -263,6 +263,28 @@ class PathTestCase(unittest.TestCase):
         p << 'Contentz'
         self.assertEqual('Contentz', p.read())
 
+    def test_readline(self):
+        "Should ducktype as a file and readline()"
+        nopath = tempfile.mkdtemp()
+        p = Path(nopath) + 'testfile.txt'
+        p << "Frist\nNext\nLast"
+        self.assertEqual("Frist\n", p.readline())
+        self.assertEqual("Next\n", p.readline())
+        self.assertEqual("Last", p.readline())
+        self.assertEqual("", p.readline())
+
+    def test_readline_dir(self):
+        "Should raise"
+        p = Path(self.tdir)
+        with self.assertRaises(TypeError):
+            p.readline()
+
+    def test_readline_nofile(self):
+        "Should raise"
+        p = Path(tempfile.mktemp())
+        with self.assertRaises(TypeError):
+            p.readline()
+
     def test_read_dir(self):
         "Reading a directory should raise"
         p = Path(self.tdir)
@@ -284,7 +306,6 @@ class PathTestCase(unittest.TestCase):
     def test_contents_nopath(self):
         "Should raise"
         nopath = tempfile.mktemp()
-        #        os.remove(nopath)
         with self.assertRaises(exceptions.DoesNotExistError):
             Path(nopath).contents
 

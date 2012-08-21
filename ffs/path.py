@@ -49,7 +49,7 @@ class Path(str):
         # These are used by contextmanagers possibly
         self._file = None
         self._startdir = None
-
+        self._readlinegen = None
         return
 
     def __repr__(self):
@@ -468,6 +468,28 @@ class Path(str):
             raise TypeError("Reading a directory doesn't make any sense Larry... ")
         with self.open('r') as fh:
             return fh.read()
+
+    def readline(self):
+        """
+        Duck-typing like a file.
+
+        Read one entire line from the file. A trailing newline character is kept in the string.
+
+        If SELF is a directory or does not exist, raise TypeError.
+
+        Return: str
+        Exceptions: TypeError
+        """
+        if not self:
+            raise TypeError("Can't read something that doesn't exist Larry... ")
+        if self.is_dir:
+            raise TypeError("Can't read a directory Larry... ")
+        if not self._readlinegen:
+            self._readlinegen = self.__iter__()
+        try:
+            return self._readlinegen.next()
+        except StopIteration:
+            return ""
 
     @property
     def contents(self):
