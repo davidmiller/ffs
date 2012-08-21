@@ -185,7 +185,8 @@ class Path(object):
         msg = 'The path {0} does not exist - not sure how to iterate'.format(self)
         raise exceptions.DoesNotExistError(msg)
 
-
+    # !!! Adding lists and Tuples of strings should work
+    # !!! Adding Paths should work
     def __add__(self, other):
         """
         Add a path and a string, else TypeError
@@ -431,5 +432,3 @@ class Path(object):
             raise TypeError("Can't touch() a directory!")
         nix.touch(self)
         return
-
-
