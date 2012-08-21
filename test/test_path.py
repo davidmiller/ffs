@@ -10,9 +10,21 @@ import unittest
 if sys.version_info <  (2, 7):
     import unittest2 as unittest
 
-from ffs import exceptions
+from ffs import exceptions, path
 from ffs.path import Path
 from ffs.nix import touch, rm, rm_r, rmdir
+
+class StringCollTestCase(unittest.TestCase):
+
+    def test_stringcoll(self):
+        "Is this a collection of strings?"
+        yesses = [['foo', 'bar'], ('goo', 'car')]
+        nos =  [['foo', 5], [True], [], (dict(), ), object()]
+        for yes in yesses:
+            self.assertTrue(path._stringcoll(yes))
+        for no in nos:
+            self.assertFalse(path._stringcoll(no))
+
 
 class PathTestCase(unittest.TestCase):
     def setUp(self):
@@ -112,6 +124,27 @@ class PathTestCase(unittest.TestCase):
         rp = Path('my/rel/file.txt')
         self.assertTrue('my/rel' in rp)
 
+    def test_add_paths(self):
+        "Add two Path objects"
+        p = Path('/foo') + Path('bar')
+        self.assertEqual('/foo/bar', p)
+
+    def test_add_collection(self):
+        "Should add to collections"
+        p = Path('/foo') + ['bar', 'car']
+        self.assertEqual('/foo/bar/car', p)
+        self.assertIsInstance(p, Path)
+
+    def test_add_emptycoll(self):
+        "adding an empty coll is a no-op"
+        p = Path('/foo')
+        p = p + []
+        self.assertEqual('/foo', p)
+        self.assertIsInstance(p, Path)
+        p = p + tuple()
+        self.assertEqual('/foo', p)
+        self.assertIsInstance(p, Path)
+
     def test_iadd(self):
         "iAdding path components should do the right thing."
         p = Path('/foo/bar')
@@ -141,7 +174,7 @@ class PathTestCase(unittest.TestCase):
         "Raise if we add a non string, non path"
         with self.assertRaises(TypeError):
             p = Path('/foo/bar')
-            np = p + []
+            np = p + {}
 
     def test_lshift_dir(self):
         "Should raise a Type Error (can't write to a dir)"
@@ -311,6 +344,5 @@ class PathTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             Path(self.tdir).touch()
 
-# !!! Add a test for touch
 if __name__ == '__main__':
     unittest.main()

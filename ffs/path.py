@@ -11,6 +11,22 @@ import types
 
 from ffs import exceptions, nix, is_dir, is_file
 
+def _stringcoll(coll):
+    """
+    Predicate function to determine whether COLL is a non-empty
+    collection (list/tuple) containing only strings.
+
+    Arguments:
+    - `coll`:*
+
+    Return: bool
+    Exceptions: None
+    """
+    if isinstance(coll, (list, tuple)) and coll:
+        return len([s for s in coll if isinstance(s, types.StringType)]) == len(coll)
+    return False
+
+
 class Path(object):
     """
     Provide a pleasant
@@ -185,16 +201,40 @@ class Path(object):
         msg = 'The path {0} does not exist - not sure how to iterate'.format(self)
         raise exceptions.DoesNotExistError(msg)
 
-    # !!! Adding lists and Tuples of strings should work
-    # !!! Adding Paths should work
     def __add__(self, other):
         """
-        Add a path and a string, else TypeError
-        """
-        if not isinstance(other, types.StringType):
-            raise TypeError
-        return Path(os.sep.join([self._value, other]))
+        Add something to ourself, returning a new Path object.
 
+        If OTHER is a Path or a String, append OTHER to SELF.
+        If OTHER is an empty collection, do nothing.
+        If OTHER is a collection containing items that are not Strings, Raise TypeError
+        If OTHER is a collection containing strings, append each to SELF as a
+           path component.
+        Otherwise, Raise TypeError
+
+        Arguments:
+        - `other`:*
+
+        Return: Path
+        Exceptions: TypeError
+        """
+        # Path()s and Strings are simple
+        if isinstance(other, Path):
+            return self + other._value
+        if isinstance(other, types.StringType):
+            return Path(os.sep.join([self._value, other]))
+
+        # Collections must be typechecked. Weak runtime type safety, yes, I know.
+        if isinstance(other, (list, tuple)):
+            if not other:
+                return self
+            if not _stringcoll(other):
+                raise TypeError('Can only add collections containing String types')
+            return self + os.sep.join(other)
+
+        raise TypeError()
+
+    # !!! Accept Path() and collections
     def __iadd__(self, other):
         """
         In place addition overloading.
