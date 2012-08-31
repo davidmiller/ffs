@@ -1,0 +1,43 @@
+"""
+ffs._path_blacklists
+
+To avoid editing two lists of methodnames when we change the Path ducktyping (test and code),
+we maintan the blacklists here.
+"""
+_strblacklist = [
+            'capitalize',
+            'center',
+            'count',
+            'decode',
+            'encode',
+            'expandtabs',
+            'find',
+            'format',
+            'index',
+            'isalnum',
+            'isalpha',
+            'isdigit',
+            'islower',
+            'isspace',
+            'istitle',
+            'isupper',
+            'join',
+            'ljust',
+            'lower',
+            'lstrip',
+            'partition',
+            'replace',
+            'rfind',
+            'rindex',
+            'rjust',
+            'rsplit',
+            'rstrip',
+            'splitlines',
+            'swapcase',
+            'title',
+            'translate',
+            'upper',
+            'zfill',
+            'isnumeric',
+            'isdecimal',
+            ]

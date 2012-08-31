@@ -10,7 +10,7 @@ import re
 import tempfile
 import types
 
-from ffs import exceptions, nix, is_dir, is_file, size
+from ffs import exceptions, nix, is_dir, is_file, size, _path_blacklists
 
 def _stringcoll(coll):
     """
@@ -28,25 +28,42 @@ def _stringcoll(coll):
     return False
 
 
-# Normalization to clean up ../, . && //
+# !!! Normalization to clean up ../, . && //
 
 class Path(str):
     """
-    Provide a pleasant
-    API for working with file/directory paths.
+    Provide a pleasant API for working with file/directory paths.
+
+    If VALUE is None, then then initial value is the current working directory.
+    If VALUE is a string, take this to be a filesystem path of some description.
+    If VALUE is a list or tuple containing strings, take these as components of a
+      filesytem path.
+    If VALUE is a list or tuple containing non-strings, non-Paths, raise TypeError.
+
+    Arguments:
+    - `value`: str or list[str]
+
+    Return: None
+    Exceptions: TypeError
     """
-    #    __slots__ = ['_value', '_file', '_startdir']
 
-    # !!! Path() should be curdir
-    # !!! Accept collections
-    # !!! Accept multiple components of initial value
-
-    def __init__(self, value=''):
+    def __init__(self, value=None):
         """
         As str objects are immutable, we must store the 'value'
         as an instance variable
         """
-        self._value = value
+        if value is None:
+            self._value = nix.getwd()
+        elif isinstance(value, (list, tuple)):
+            if not value:
+                self._value = ''
+            elif not _stringcoll(value):
+                raise TypeError('Can only accept collections of strings Larry')
+            self._value = os.sep.join(value)
+        elif isinstance(value, types.StringType):
+            self._value = value
+        else:
+            raise TypeError("Don't know how to initialize with {0} Larry... ".format(value))
         # These are used by contextmanagers possibly
         self._file = None
         self._startdir = None
@@ -112,6 +129,18 @@ class Path(str):
         Exceptions: None
         """
         return len(self._split)
+
+    def __getattribute__(self, attr):
+        """
+        We override getattribute largely to allow us to blacklist
+        string methods that are not appropriate for Path objects,
+        despite inheriting from str for stdlib duck-typing purposes.
+        """
+        if attr in _path_blacklists._strblacklist:
+            msg = "'Path' object has no attribute '{0}'".format(attr)
+            raise AttributeError(msg)
+
+        return super(str, self).__getattribute__(attr)
 
     def __getitem__(self, key):
         """
@@ -339,50 +368,6 @@ class Path(str):
             self._startdir = None
         return
 
-    # Some of these make sense for a Path.
-    # Some frankly mean we're being duck typed way out as a str & we should
-    # just give it up.
-    #
-    # !!! String methods:
-    # capitalize
-    # center
-    # count
-    # decode
-    # encode
-    # expandtabs
-    # find
-    # format
-    # index
-    # isalnum
-    # isalpha
-    # isdigit
-    # islower
-    # isspace
-    # istitle
-    # isupper
-    # join
-    # ljust
-    # lower
-    # lstrip
-    # partition
-    # replace
-    # rfind
-    # rindex
-    # rjust
-    # rsplit
-    # rstrip
-    # split
-    # splitlines
-    # startswith
-    # strip
-    # swapcase
-    # title
-    # translate
-    # upper
-    # zfill
-    # isnumeric
-    # isdecimal
-
     @property
     def is_abspath(self):
         """
@@ -439,6 +424,8 @@ class Path(str):
 
     # !!! Parent
     # !!! ext
+
+    # !!! Split - change default arg
 
     @contextlib.contextmanager
     def open(self, mode):

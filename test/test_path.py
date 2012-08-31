@@ -11,7 +11,7 @@ import unittest
 if sys.version_info <  (2, 7):
     import unittest2 as unittest
 
-from ffs import exceptions, path
+from ffs import exceptions, path, _path_blacklists
 from ffs.path import Path
 from ffs.nix import touch, rm, rm_r, rmdir
 
@@ -37,6 +37,34 @@ class PathTestCase(unittest.TestCase):
         rm(self.tmpath)
         rm_r(self.tdir)
 
+
+class MagicMethodsTestCase(PathTestCase):
+    "Unittests for Path()'s magicmethods"
+
+    def test_init_none(self):
+        "Initializing"
+        p = Path()
+        self.assertEqual(os.getcwd(), p._value)
+
+    def test_init_value(self):
+        "Start from a val"
+        cases = [
+            ([],             ''),
+            (tuple(),        ''),
+            ('/foo',         '/foo'),
+            (['foo', 'bar'], 'foo/bar')
+            ]
+        for init, val in cases:
+            self.assertEqual(val, Path(init)._value)
+
+    def test_init_inappropriate(self):
+        "Should raise if we try to initialize with nonsense"
+        cases = [object(), {'foo': 1}, ['foo', 'bar', PathTestCase]]
+        for case in cases:
+            with self.assertRaises(TypeError):
+                print case
+                Path(case)
+
     def test_repr(self):
         "Print like a str"
         self.assertEqual('/foo', Path('/foo').__repr__())
@@ -54,7 +82,6 @@ class PathTestCase(unittest.TestCase):
 
     def test_nonzero(self):
         "Allow if Path('/foo):"
-        self.assertFalse(Path())
         self.assertFalse(Path(tempfile.mktemp()))
         self.assertTrue(Path(self.tmpath))
 
@@ -198,6 +225,18 @@ class PathTestCase(unittest.TestCase):
         contents = open(self.tmpath).read()
         self.assertEqual("Hello Beautiful", contents)
 
+    def test_dict_key(self):
+        "Should be able to dict(Path()=5)"
+        mydict = {Path('/foo'): 1}
+        self.assertEqual(1, mydict[Path('/foo')])
+        self.assertEqual(1, mydict['/foo'])
+        mydict['/foo'] = 2
+        self.assertEqual(2, mydict['/foo'])
+
+
+class ContextmanagingTestCase(PathTestCase):
+    "Using Path()s as contextmanagers"
+
     def test_contextmanager_file(self):
         "With path should behave like open"
         with Path(self.tmpath) as fh:
@@ -209,7 +248,51 @@ class PathTestCase(unittest.TestCase):
         with Path(self.tdir):
             self.assertEqual(self.tdir, os.getcwd())
 
-    def test_abspath(self):
+    def test_open(self):
+        "path.open allows modes to be passed"
+        with Path(self.tmpath).open('w') as fh:
+            self.assertIsInstance(fh, file)
+            self.assertEqual('w', fh.mode)
+
+    def test_open_isdir(self):
+        "If we open a directory it should raise"
+        with self.assertRaises(TypeError):
+            with Path(self.tdir).open('w') as fh:
+                pass # Should have raised by now
+
+    def test_open_mkpath(self):
+        "If we open a path that doesn't exist yet, make it"
+        nopath = tempfile.mkdtemp()
+        rmdir(nopath)
+        p = Path(nopath) + 'really/doesnt/exist.txt'
+        filename = nopath + '/really/doesnt/exist.txt'
+        with p.open('w') as fh:
+            self.assertIsInstance(fh, file)
+            self.assertEqual(filename, fh.name)
+        pass
+
+    def test_temp_contextmanager(self):
+        "should yeild a path that exists"
+        with Path.temp() as p:
+            val = str(p)
+            self.assertTrue(os.path.exists(val))
+            self.assertTrue(os.path.isdir(val))
+        self.assertFalse(os.path.isdir(val))
+        self.assertFalse(os.path.exists(val))
+
+    def test_with_tmp_contents(self):
+        "Should kill directory contents"
+        with Path.temp() as p:
+            val = str(p)
+            touch(p + 'my.txt')
+            self.assertTrue(os.path.exists(str(p + 'my.txt')))
+        self.assertFalse(os.path.exists(val))
+
+
+class PropertiesTestCase(PathTestCase):
+    "Properties of instances"
+
+    def test_isabspath(self):
         "Abspath predicate"
         p = Path('foo/bar.txt')
         ap = Path('/foo/bar.txt')
@@ -243,28 +326,37 @@ class PathTestCase(unittest.TestCase):
         for p, absolute in cases:
             self.assertEqual(absolute, Path(p).abspath)
 
-    def test_open(self):
-        "path.open allows modes to be passed"
-        with Path(self.tmpath).open('w') as fh:
-            self.assertIsInstance(fh, file)
-            self.assertEqual('w', fh.mode)
+    def test_contents(self):
+        "Contents should be a property"
+        p = Path(self.tmpath)
+        p << 'Contentz'
+        self.assertEqual('Contentz', p.contents)
 
-    def test_open_isdir(self):
-        "If we open a directory it should raise"
-        with self.assertRaises(TypeError):
-            with Path(self.tdir).open('w') as fh:
-                pass # Should have raised by now
+    def test_contents_dir(self):
+        "list of files"
+        p = Path(self.tdir)
+        touch(p + 'myfile.txt')
+        self.assertEqual(['myfile.txt'], p.contents)
 
-    def test_open_mkpath(self):
-        "If we open a path that doesn't exist yet, make it"
-        nopath = tempfile.mkdtemp()
-        rmdir(nopath)
-        p = Path(nopath) + 'really/doesnt/exist.txt'
-        filename = nopath + '/really/doesnt/exist.txt'
-        with p.open('w') as fh:
-            self.assertIsInstance(fh, file)
-            self.assertEqual(filename, fh.name)
-        pass
+    def test_contents_nopath(self):
+        "Should raise"
+        nopath = tempfile.mktemp()
+        with self.assertRaises(exceptions.DoesNotExistError):
+            Path(nopath).contents
+
+class StringLikeTestCase(PathTestCase):
+
+    def test_blacklisted(self):
+        "Inappropriate methods of strings should be overriden"
+        blacklist = _path_blacklists._strblacklist
+        p = Path()
+        for method in blacklist:
+            with self.assertRaises(AttributeError):
+                getattr(p, method)
+
+
+class FileLikeTestCase(PathTestCase):
+    "Unittests for our file-like duck-typing operations"
 
     def test_read(self):
         "Should read the path"
@@ -316,48 +408,9 @@ class PathTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             p.read()
 
-    def test_contents(self):
-        "Contents should be a property"
-        p = Path(self.tmpath)
-        p << 'Contentz'
-        self.assertEqual('Contentz', p.contents)
 
-    def test_contents_dir(self):
-        "list of files"
-        p = Path(self.tdir)
-        touch(p + 'myfile.txt')
-        self.assertEqual(['myfile.txt'], p.contents)
-
-    def test_contents_nopath(self):
-        "Should raise"
-        nopath = tempfile.mktemp()
-        with self.assertRaises(exceptions.DoesNotExistError):
-            Path(nopath).contents
-
-    def test_dict_key(self):
-        "Should be able to dict(Path()=5)"
-        mydict = {Path('/foo'): 1}
-        self.assertEqual(1, mydict[Path('/foo')])
-        self.assertEqual(1, mydict['/foo'])
-        mydict['/foo'] = 2
-        self.assertEqual(2, mydict['/foo'])
-
-    def test_temp_contextmanager(self):
-        "should yeild a path that exists"
-        with Path.temp() as p:
-            val = str(p)
-            self.assertTrue(os.path.exists(val))
-            self.assertTrue(os.path.isdir(val))
-        self.assertFalse(os.path.isdir(val))
-        self.assertFalse(os.path.exists(val))
-
-    def test_with_tmp_contents(self):
-        "Should kill directory contents"
-        with Path.temp() as p:
-            val = str(p)
-            touch(p + 'my.txt')
-            self.assertTrue(os.path.exists(str(p + 'my.txt')))
-        self.assertFalse(os.path.exists(val))
+class NixMethodsTestCase(PathTestCase):
+    "Unittesting nix operations added as methods"
 
     def test_ls(self):
         "Should list dir contents"
@@ -389,6 +442,7 @@ class PathTestCase(unittest.TestCase):
         self.assertTrue(os.path.isdir(self.tdir))
         with self.assertRaises(TypeError):
             Path(self.tdir).touch()
+
 
 class JsonishTestCase(unittest.TestCase):
     "Tests for the JSON operations"
