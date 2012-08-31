@@ -306,7 +306,19 @@ class Path(str):
         self._value = '{0}{1}'.format(frist, os.sep.join(branches))
         return Path(self._value)
 
-    # !!! Overload / to be path addition if the other is a reasonable type
+    def __div__(self, other):
+        """
+        We overload the division operator to be path addition.
+
+        If OTHER is not a str or Path, we raise TypeError.
+
+        Arguments:
+        - `other`: str or Path
+
+        Return: Path
+        Exceptions: TypeError
+        """
+        return self + other
 
     def __lshift__(self, contents):
         """

@@ -204,6 +204,19 @@ class MagicMethodsTestCase(PathTestCase):
             p = Path('/foo/bar')
             np = p + {}
 
+    def test_div(self):
+        "/ing path components should do the right thing."
+        p = Path('/foo/bar')
+        newpath = p / 'baz.txt'
+        self.assertEqual('/foo/bar/baz.txt', newpath)
+        self.assertIsInstance(newpath, Path)
+
+    def test_div_notstring(self):
+        "Raise if we add a non string, non path"
+        with self.assertRaises(TypeError):
+            p = Path('/foo/bar')
+            np = p / {}
+
     def test_lshift_dir(self):
         "Should raise a Type Error (can't write to a dir)"
         p = Path(self.tdir)
