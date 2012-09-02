@@ -9,6 +9,13 @@ for something absurd - e.g. what's the sane use of Path().splitlines() ?
 
 Overload the / operator to be equivalent to path addition.
 
+Add a mkdir() method to Path. This (and now also touch()) take starargs of
+child nodes to the current Path, assuming it is a directory. This allows creating
+many directories with one call::
+
+    >>> p = Path(rpmroot)
+    >>> p.mkdir('BUILD', 'SOURCES', 'SPECS', 'RPM', 'SRPMS')
+
 0.0.2 (Aug 21 2012)
 +++++++++++++++++++
 

@@ -1,6 +1,7 @@
 """
 Unittests for ffs.path
 """
+import getpass
 import itertools
 import json
 import os
@@ -52,7 +53,8 @@ class MagicMethodsTestCase(PathTestCase):
             ([],             ''),
             (tuple(),        ''),
             ('/foo',         '/foo'),
-            (['foo', 'bar'], 'foo/bar')
+            (['foo', 'bar'], 'foo/bar'),
+            ('~/.emacs',     '~/.emacs')
             ]
         for init, val in cases:
             self.assertEqual(val, Path(init)._value)
@@ -339,6 +341,15 @@ class PropertiesTestCase(PathTestCase):
         for p, absolute in cases:
             self.assertEqual(absolute, Path(p).abspath)
 
+    def test_abspath_tilde(self):
+        "If *nix, expand ~"
+        if not sys.platform.startswith('win'):
+            user = getpass.getuser()
+            expected = '/home/{0}/.emacs'.format(user)
+            p = Path('~/.emacs')
+            self.assertEqual(expected, p.abspath)
+
+
     def test_contents(self):
         "Contents should be a property"
         p = Path(self.tmpath)
@@ -366,7 +377,6 @@ class StringLikeTestCase(PathTestCase):
         for method in blacklist:
             with self.assertRaises(AttributeError):
                 getattr(p, method)
-
 
 class FileLikeTestCase(PathTestCase):
     "Unittests for our file-like duck-typing operations"
@@ -456,6 +466,37 @@ class NixMethodsTestCase(PathTestCase):
         with self.assertRaises(TypeError):
             Path(self.tdir).touch()
 
+    def test_touch_child(self):
+        "Touch children"
+        p = Path(self.tdir)
+        self.assertFalse(os.path.isfile(self.tdir + 'one.txt'))
+        self.assertFalse(os.path.isfile(self.tdir + 'two.txt'))
+        p.touch('one.txt', 'two.txt')
+        self.assertTrue(os.path.isfile(self.tdir + '/one.txt'))
+        self.assertTrue(os.path.isfile(self.tdir + '/two.txt'))
+
+    def test_mkdir_file(self):
+        "Should raise TypeError"
+        p = Path(self.tmpath)
+        with self.assertRaises(TypeError):
+            p.mkdir()
+
+    def test_mkdir(self):
+        "Should make the file."
+        p = Path(self.tdir) + 'foo'
+        self.assertFalse(os.path.isdir(self.tdir + '/foo'))
+        p.mkdir()
+        self.assertTrue(os.path.isdir(self.tdir + '/foo'))
+
+    def test_mkdir_child(self):
+        "Should create child directories"
+        p = Path(self.tdir)
+        self.assertFalse(os.path.isdir(self.tdir + 'one'))
+        self.assertFalse(os.path.isdir(self.tdir + 'two'))
+        p.mkdir('one', 'two')
+        self.assertTrue(os.path.isdir(self.tdir + '/one'))
+        self.assertTrue(os.path.isdir(self.tdir + '/two'))
+
 
 class JsonishTestCase(unittest.TestCase):
     "Tests for the JSON operations"
@@ -481,6 +522,7 @@ class JsonishTestCase(unittest.TestCase):
         for case in cases:
             with self.assertRaises(TypeError):
                 case.json_load()
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -27,7 +27,6 @@ def _stringcoll(coll):
         return len([s for s in coll if isinstance(s, types.StringType)]) == len(coll)
     return False
 
-
 # !!! Normalization to clean up ../, . && //
 
 class Path(str):
@@ -427,12 +426,15 @@ class Path(str):
         """
         Return the absolute path represented by SELF.
 
+        If SELF begins with a /, assume a fully qualified name.
+        If not and the ~ construction is in SELF, expand it.
+
         Return: Path
         Exceptions: None
         """
         if self.is_abspath:
             return self
-        return Path(os.path.abspath(self))
+        return Path(os.path.abspath(os.path.expanduser(self)))
 
     # !!! Parent
     # !!! ext
@@ -582,7 +584,7 @@ class Path(str):
         msg = "Cannot access {0}: No such file or directory".format(self)
         raise exceptions.DoesNotExistError(msg)
 
-    def touch(self):
+    def touch(self, *args):
         """
         Equivalent to calling the *nix command touch on SELF.
 
@@ -590,12 +592,47 @@ class Path(str):
 
         If self is a directory, raise TypeError
 
+        If *ARGS is non-null, treat each item in *ARGS as a child node of
+        SELF, and touch these files
+
+        Arguments:
+        - `*ARGS`: str
+
         Return: None
         Exceptions: TypeError
         """
-        if self.is_dir:
+        if self.is_dir and not args:
             raise TypeError("Can't touch() a directory!")
-        nix.touch(self)
+        if not args:
+            nix.touch(self)
+        else:
+            for arg in args:
+                nix.touch(self + arg)
+
+    def mkdir(self, *args):
+        """
+        Equivalent to calling the *nix command on SELF.
+
+        Creates a directory if one does not exist, otherwise, a no-op.
+
+        If self is a file, raise TypeError
+
+        If *ARGS is non-null, treat each item in *ARGS as a child node of
+        SELF, and create these directories.
+
+        Arguments:
+        - `*ARGS`: str
+
+        Return: None
+        Exceptions: TypeError
+        """
+        if self.is_file:
+            raise TypeError("Can't mkdir() a file.")
+        if not args:
+            nix.mkdir(self)
+        else:
+            for arg in args:
+                nix.mkdir(self + arg)
         return
 
     def json_load(self):

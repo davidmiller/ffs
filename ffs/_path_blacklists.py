@@ -11,7 +11,6 @@ _strblacklist = [
             'decode',
             'encode',
             'expandtabs',
-            'find',
             'format',
             'index',
             'isalnum',
