@@ -26,7 +26,6 @@ _strblacklist = [
             'lstrip',
             'partition',
             'replace',
-            'rfind',
             'rindex',
             'rjust',
             'rsplit',

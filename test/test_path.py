@@ -240,6 +240,13 @@ class MagicMethodsTestCase(PathTestCase):
         contents = open(self.tmpath).read()
         self.assertEqual("Hello Beautiful", contents)
 
+    def test_lshift_unicode(self):
+        "Make sure we can accept unicode strings"
+        p = Path(self.tmpath)
+        p << unicode("Hello Beautiful")
+        contents = open(self.tmpath).read()
+        self.assertEqual("Hello Beautiful", contents)
+
     def test_dict_key(self):
         "Should be able to dict(Path()=5)"
         mydict = {Path('/foo'): 1}
@@ -349,6 +356,11 @@ class PropertiesTestCase(PathTestCase):
             p = Path('~/.emacs')
             self.assertEqual(expected, p.abspath)
 
+    def test_parent(self):
+        "Return a Path's parent"
+        p = Path('/foo/bar')
+        self.assertEqual('/foo', p.parent)
+        self.assertIsInstance(p.parent, Path)
 
     def test_contents(self):
         "Contents should be a property"

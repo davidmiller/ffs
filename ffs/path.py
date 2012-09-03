@@ -286,8 +286,7 @@ class Path(str):
         """
         if not isinstance(other, types.StringType):
             raise TypeError
-        self._value += '{0}{1}'.format(os.sep, other)
-        return Path(self._value)
+        return Path('{0}{1}{2}'.format(self, os.sep, other))
 
     def __radd__(self, other):
         """
@@ -302,8 +301,7 @@ class Path(str):
         else:
             frist = ''
         branches = [b for b in other.split(os.sep) + self._split if b]
-        self._value = '{0}{1}'.format(frist, os.sep.join(branches))
-        return Path(self._value)
+        return Path('{0}{1}'.format(frist, os.sep.join(branches)))
 
     def __div__(self, other):
         """
@@ -343,7 +341,7 @@ class Path(str):
         """
         if self.is_dir:
             raise TypeError("You can't write to a directory Larry... ")
-        if not isinstance(contents, types.StringType):
+        if not isinstance(contents, types.StringTypes):
             raise TypeError("You have to write with a StringType Larry... ")
         with self.open('a') as fh:
             fh.write(contents)
@@ -436,7 +434,16 @@ class Path(str):
             return self
         return Path(os.path.abspath(os.path.expanduser(self)))
 
-    # !!! Parent
+    @property
+    def parent(self):
+        """
+        Return a Path object representing the parent of SELF
+
+        Return: Path
+        Exceptions: None
+        """
+        return Path(os.path.dirname(str(self)))
+
     # !!! ext
 
     # !!! Split - change default arg
