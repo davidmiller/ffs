@@ -16,6 +16,8 @@ many directories with one call::
     >>> p = Path(rpmroot)
     >>> p.mkdir('BUILD', 'SOURCES', 'SPECS', 'RPM', 'SRPMS')
 
+Maintain immutability for in-place append and update tests to catch this regression.
+
 0.0.2 (Aug 21 2012)
 +++++++++++++++++++
 

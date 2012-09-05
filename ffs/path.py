@@ -286,6 +286,8 @@ class Path(str):
         """
         if not isinstance(other, types.StringType):
             raise TypeError
+        if other[0] == '/':
+            return Path('{0}{1}'.format(self, other))
         return Path('{0}{1}{2}'.format(self, os.sep, other))
 
     def __radd__(self, other):

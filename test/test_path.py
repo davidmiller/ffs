@@ -181,6 +181,19 @@ class MagicMethodsTestCase(PathTestCase):
         p += 'baz.txt'
         self.assertEqual('/foo/bar/baz.txt', p)
 
+    def test_iadd_abs_right(self):
+        "When new component starts with a / don't duplicate it."
+        p = Path('/tmp')
+        p += '/foo'
+        self.assertEqual('/tmp/foo', p)
+
+    def test_iadd_immutability(self):
+        "+= shouldn't alter self."
+        p = p2 = Path('/tmp')
+        p2 += 'foo'
+        self.assertEqual('/tmp', p)
+        self.assertEqual('/tmp/foo', p2)
+
     def test_radd(self):
         "Iadd from a string"
         p = '/foo/bar'
