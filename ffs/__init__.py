@@ -7,7 +7,7 @@ import os
 import sys
 
 from ffs import exceptions, nixargs
-from ffs.filesystem import is_dir, is_file, hsize, size
+from ffs.util import is_dir, is_file, hsize, size
 from ffs.nix import (cd, chmod, chown, cmp,
                      cp, cp_r,
                      getwd,

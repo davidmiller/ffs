@@ -168,7 +168,7 @@ def ln(src, dest, force=None, symbolic=None):
     if force and os.path.exists(dest):
         rm(dest)
     if symbolic:
-        os.symlink(src, dest)
+        ln_s(src, dest)
     else:
         os.link(src, dest)
     return
@@ -272,21 +272,36 @@ def pwd():
     print(getcwd())
     return
 
-def rm(*targets):
+def rm(*targets, **kw):
     """
     Python translation of GNU rm
 
+    If the keyword argument FORCE is True, ignore nonexistant files.
+
     Arguments:
     - `*targets`: all target paths
+    - `force`: bool
 
     Return: None
-    Exceptions: None
+    Exceptions: DoesNotExistError
     """
-    for target in targets:
-        os.remove(str(target))
+    if 'force' in kw and kw['force']:
+        for target in targets:
+            try:
+                os.remove(str(target))
+            except OSError:
+                pass # Either never raised or explicitly ignored, so pass
+    else:
+        for target in targets:
+            try:
+                os.remove(str(target))
+            except OSError:
+                if not os.path.exists(str(target)):
+                    raise exceptions.DoesNotExistError(
+                        "No such file {0} Larry... ".format(target))
+                else:
+                    raise
     return
-
-# ::rm_f (FileUtils)
 
 # !!! Wrap to accept Path
 rm_r = shutil.rmtree

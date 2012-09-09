@@ -356,7 +356,19 @@ class RmTestCase(unittest.TestCase):
         nix.rm(Path(self.newfile))
         self.assertFalse(os.path.exists(self.newfile))
 
+    def test_rm_f(self):
+        "Remove a nonexistant file without error"
+        nofile = 'my/nonexistant/file.txt'
+        self.assertFalse(os.path.exists(nofile))
+        nix.rm(nofile, force=True)
+        self.assertFalse(os.path.exists(nofile))
 
+    def test_rm_raises(self):
+        "Raise if a file does not exist"
+        nofile = 'my/nonexistant/file.txt'
+        self.assertFalse(os.path.exists(nofile))
+        with self.assertRaises(exceptions.DoesNotExistError):
+            nix.rm(nofile)
 
 class TouchTestCase(unittest.TestCase):
     def setUp(self):

@@ -102,17 +102,17 @@ class MagicMethodsTestCase(PathTestCase):
         self.assertEqual(p[-1],  'baz')
 
     def test_setitem(self):
-        "Make paths slice assignable"
+        "Raise on item assignment"
         p = Path('/foo/bar/baz.txt')
-        p[1] = 'car'
-        self.assertEqual('/foo/car/baz.txt', p)
+        with self.assertRaises(TypeError):
+            p[1] = 'car'
 
     def test_setitem_indexerror(self):
-        "Make paths slice assignable"
+        "Paths should always raise on item assignment"
         p = Path('/foo/bar/baz.txt')
-        with self.assertRaises(IndexError):
+        with self.assertRaises(TypeError):
             p[3] = 'car'
-        with self.assertRaises(IndexError):
+        with self.assertRaises(TypeError):
             p[4] = 'car'
 
     def test_iter_file(self):

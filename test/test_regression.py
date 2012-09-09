@@ -5,6 +5,8 @@ import os
 import sys
 import unittest
 
+from mock import patch
+
 from ffs import Path
 
 if sys.version_info <  (2, 7):
@@ -18,6 +20,7 @@ class PathRegressionTestCase(unittest.TestCase):
         p2 = os.path.join(p, 'foo')
         self.assertEqual('/tmp', p)
         self.assertEqual('/tmp/foo', p2)
+
 
 if __name__ == '__main__':
     unittest.main()

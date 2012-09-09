@@ -162,6 +162,7 @@ class Path(str):
         # If we asked for [:int] and we're an abspath, prepend it
         if isinstance(key, types.SliceType):
             if key.start in [None, 0] and key.stop:
+                # !!! What does joining by '/' do on Windoze?
                 frist = '{0}{1}'.format('/' if self.is_abspath else '', interesting[0])
                 interesting[0] = frist
 
@@ -177,21 +178,19 @@ class Path(str):
 
     def __setitem__(self, key, value):
         """
-        Implementation of self[key] = value
+        Paths are immutable, so raise TypeError
 
         Arguments:
-        - `key`: int
-        - `value`: str/Path
+        - `key`: object
+        - `value`: object
 
         Return: None
-        Exceptions: IndexError
+        Exceptions: TypeError
         """
-        branches = self._split
-        branches[key] = value
-        branches[0] = '{0}{1}'.format('/' if self.is_abspath else '', branches[0])
-        self._value = os.sep.join(branches)
-        return
+        raise TypeError('Path object does not support item assignment')
 
+    # !!! TODO: Do we want to do disk access here?
+    # !!! This behaves differently to __iter__.
     def __contains__(self, item):
         """
         Determine if ITEM is in the Path
@@ -210,6 +209,7 @@ class Path(str):
             return True
         return False
 
+    # !! This behaves differently to __contains__
     def __iter__(self):
         """
         Path objects iterate differently depending on context.
@@ -277,6 +277,7 @@ class Path(str):
 
         raise TypeError()
 
+    # !!! Deal with path sep
     # !!! Accept Path() and collections
     def __iadd__(self, other):
         """
@@ -286,10 +287,12 @@ class Path(str):
         """
         if not isinstance(other, types.StringType):
             raise TypeError
+        # !!! What should we do on windoze?
         if other[0] == '/':
             return Path('{0}{1}'.format(self, other))
         return Path('{0}{1}{2}'.format(self, os.sep, other))
 
+    # !!! Deal with different path.sep
     def __radd__(self, other):
         """
         Add to the right of a string
@@ -298,6 +301,7 @@ class Path(str):
         """
         if not isinstance(other, types.StringType):
             raise TypeError
+        # !!! What should this do on windoze?
         if other[0] == '/':
             frist = '/'
         else:
@@ -379,6 +383,7 @@ class Path(str):
             self._startdir = None
         return
 
+    # !!! Make this deal with os.sep
     @property
     def is_abspath(self):
         """
@@ -387,6 +392,7 @@ class Path(str):
         Return: bool
         Exceptions: None
         """
+        # !!! Windoze?
         return self._value[0] == '/'
 
     @property
@@ -643,6 +649,9 @@ class Path(str):
             for arg in args:
                 nix.mkdir(self + arg)
         return
+
+    # !!! cp
+    # !!! mv
 
     def json_load(self):
         """

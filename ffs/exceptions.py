@@ -11,3 +11,12 @@ class DoesNotExistError(Error):
 
 class ExistsError(Error):
     "Something already exisis"
+
+class InappropriateError(Error):
+    "Someone did something inappropriate"
+
+class NonsenseError(Error):
+    "We have encountered a nonsense scenario. Bail."
+
+class NotRaisedError(Error):
+    "There is never a good time to raise this"
