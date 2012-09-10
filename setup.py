@@ -1,4 +1,6 @@
+
 import re
+import sys
 
 from distutils.core import setup
 
@@ -10,6 +12,10 @@ if mo:
     VERSION = mo.group(1)
 else:
     raise RuntimeError("Unable to find version string in {0}".format(VERSION_FILE))
+
+install_requires = []
+if sys.version_info < (2, 6):
+    install_requires.append('smplejson')
 
 setup(
     name = "ffs",
@@ -31,5 +37,6 @@ setup(
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Libraries"
         ],
+    install_requires=install_requires,
     packages = ['ffs'],
     )

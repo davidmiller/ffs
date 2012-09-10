@@ -9,4 +9,5 @@ install:
     - pip install -r requirements.txt --use-mirrors
     - "if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi"
     - "if [[ $TRAVIS_PYTHON_VERSION == '2.5' ]]; then pip install unittest2; fi"
+    - "if [[ $TRAVIS_PYTHON_VERSION == '2.5' ]]; then pip install simplejson; fi"
 script: rake test
