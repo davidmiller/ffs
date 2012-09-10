@@ -237,7 +237,6 @@ def mkdir(*paths,**kw):
     """
     fn = 'parents' in kw and mkdir_p or os.mkdir
     for path in paths:
-        print path, fn
         fn(str(path))
     return
 

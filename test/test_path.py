@@ -2,6 +2,7 @@
 Unittests for ffs.path
 """
 import getpass
+import io
 import itertools
 import json
 import os
@@ -11,10 +12,13 @@ import unittest
 
 if sys.version_info <  (2, 7):
     import unittest2 as unittest
+if sys.version.startswith('3.1'):
+    from ffs import _unittest31 as unittest
 
 from ffs import exceptions, path, _path_blacklists
 from ffs.path import Path
 from ffs.nix import touch, rm, rm_r, rmdir
+from ffs._py3k import FileKlass
 
 class StringCollTestCase(unittest.TestCase):
 
@@ -64,7 +68,6 @@ class MagicMethodsTestCase(PathTestCase):
         cases = [object(), {'foo': 1}, ['foo', 'bar', PathTestCase]]
         for case in cases:
             with self.assertRaises(TypeError):
-                print case
                 Path(case)
 
     def test_repr(self):
@@ -88,7 +91,7 @@ class MagicMethodsTestCase(PathTestCase):
 
     def test_nonzero(self):
         "Allow if Path('/foo):"
-        self.assertFalse(Path(tempfile.mktemp()))
+        self.assertFalse(Path('this/is/not/a/real/file/i/hope.txt'))
         self.assertTrue(Path(self.tmpath))
 
     def test_len(self):
@@ -125,7 +128,11 @@ class MagicMethodsTestCase(PathTestCase):
             tf.write("foo\nbar\nbaz\n")
         p = Path(self.tmpath)
         i = ['foo\n', 'bar\n', 'baz\n']
-        for branch, expected in itertools.izip(p, i):
+        try:
+            fn = itertools.izip
+        except AttributeError:
+            fn = zip
+        for branch, expected in fn(p, i):
             self.assertEqual(expected, branch)
 
     def test_iter_dir(self):
@@ -260,7 +267,10 @@ class MagicMethodsTestCase(PathTestCase):
     def test_lshift_unicode(self):
         "Make sure we can accept unicode strings"
         p = Path(self.tmpath)
-        p << unicode("Hello Beautiful")
+        if sys.version_info < (3, 0):
+            p << unicode("Hello Beautiful")
+        else:
+            p << "Hello Beautiful"
         contents = open(self.tmpath).read()
         self.assertEqual("Hello Beautiful", contents)
 
@@ -279,7 +289,7 @@ class ContextmanagingTestCase(PathTestCase):
     def test_contextmanager_file(self):
         "With path should behave like open"
         with Path(self.tmpath) as fh:
-            self.assertIsInstance(fh, file)
+            self.assertIsInstance(fh, FileKlass)
             self.assertEqual('r', fh.mode)
 
     def test_contextmanager_dir(self):
@@ -290,7 +300,7 @@ class ContextmanagingTestCase(PathTestCase):
     def test_open(self):
         "path.open allows modes to be passed"
         with Path(self.tmpath).open('w') as fh:
-            self.assertIsInstance(fh, file)
+            self.assertIsInstance(fh, FileKlass)
             self.assertEqual('w', fh.mode)
 
     def test_open_isdir(self):
@@ -306,7 +316,7 @@ class ContextmanagingTestCase(PathTestCase):
         p = Path(nopath) + 'really/doesnt/exist.txt'
         filename = nopath + '/really/doesnt/exist.txt'
         with p.open('w') as fh:
-            self.assertIsInstance(fh, file)
+            self.assertIsInstance(fh, FileKlass)
             self.assertEqual(filename, fh.name)
         pass
 

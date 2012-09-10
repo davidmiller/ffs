@@ -189,7 +189,7 @@ class DiskFilesystemTestCase(unittest.TestCase):
 
     def test_open(self):
         "Openit."
-        with patch('__builtin__.open') as po:
+        with patch('ffs.filesystem.open', create=True) as po:
             po.return_value = 'filelike'
             fh = self.fs.open(self.tfile, 'wb')
             self.assertEqual('filelike', fh)

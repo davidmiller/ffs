@@ -10,6 +10,8 @@ import re
 import tempfile
 import types
 
+import six
+
 from ffs import exceptions, filesystem, nix, is_dir, is_file, size, _path_blacklists
 
 def _stringcoll(coll):
@@ -24,7 +26,7 @@ def _stringcoll(coll):
     Exceptions: None
     """
     if isinstance(coll, (list, tuple)) and coll:
-        return len([s for s in coll if isinstance(s, types.StringType)]) == len(coll)
+        return len([s for s in coll if isinstance(s, six.string_types)]) == len(coll)
     return False
 
 # !!! Normalization to clean up ../, . && //
@@ -61,7 +63,7 @@ class Path(str):
             elif not _stringcoll(value):
                 raise TypeError('can only accept collections of strings larry')
             self._value = self.fs.sep.join(value)
-        elif isinstance(value, types.StringType):
+        elif isinstance(value, six.string_types):
             self._value = value
         else:
             raise TypeError("don't know how to initialize with {0} larry... ".format(value))
@@ -88,7 +90,7 @@ class Path(str):
         if the other is a path, likewise.
         if the other is anything else, say no.
         """
-        if isinstance(other, types.StringType):
+        if isinstance(other, six.string_types):
             return self._value == other
         elif isinstance(other, path):
             return self._value == other._value
@@ -121,6 +123,9 @@ class Path(str):
         exceptions:
         """
         return self.fs.exists(self._value)
+
+    # Py3k compatibility
+    __bool__ = __nonzero__
 
     def __len__(self):
         """
@@ -162,7 +167,7 @@ class Path(str):
             return Path(interesting)
 
         # if we asked for [:int] and we're an abspath, prepend it
-        if isinstance(key, types.SliceType):
+        if isinstance(key, slice):
             if key.start in [None, 0] and key.stop:
                 # !!! what does joining by '/' do on windoze?
                 frist = '{0}{1}'.format(self.fs.sep if self.is_abspath else '', interesting[0])
@@ -266,7 +271,7 @@ class Path(str):
         # path()s and strings are simple
         if isinstance(other, Path):
             return self + other._value
-        if isinstance(other, types.StringType):
+        if isinstance(other, six.string_types):
             return Path(self.fs.sep.join([self._value, other]))
 
         # collections must be typechecked. weak runtime type safety, yes, i know.
@@ -286,7 +291,7 @@ class Path(str):
 
         we want to include the path separator
         """
-        if not isinstance(other, types.StringType):
+        if not isinstance(other, six.string_types):
             raise TypeError
         # !!! what should we do on windoze?
         if other[0] == self.fs.sep:
@@ -300,7 +305,7 @@ class Path(str):
 
         we want to include the path separator
         """
-        if not isinstance(other, types.StringType):
+        if not isinstance(other, six.string_types):
             raise TypeError
         # !!! what should this do on windoze?
         if other[0] == self.fs.sep:
@@ -321,6 +326,12 @@ class Path(str):
 
         return: path
         exceptions: TypeError
+        """
+        return self + other
+
+    def __truediv__(self, other):
+        """
+        Overload all the division operators
         """
         return self + other
 
@@ -348,7 +359,7 @@ class Path(str):
         """
         if self.is_dir:
             raise TypeError("you can't write to a directory larry... ")
-        if not isinstance(contents, types.StringTypes):
+        if not isinstance(contents, six.string_types):
             raise TypeError("you have to write with a stringtype larry... ")
         with self.open('a') as fh:
             fh.write(contents)
@@ -516,7 +527,7 @@ class Path(str):
         if not self._readlinegen:
             self._readlinegen = self.__iter__()
         try:
-            return self._readlinegen.next()
+            return six.next(self._readlinegen)
         except StopIteration:
             return ""
 

@@ -9,6 +9,8 @@ import unittest
 
 if sys.version_info <  (2, 7):
     import unittest2 as unittest
+if sys.version.startswith('3.1'):
+    from ffs import _unittest31 as unittest
 
 from mock import patch
 
@@ -53,20 +55,20 @@ class ChmodTestCase(unittest.TestCase):
     def setUp(self):
         with tempfile.NamedTemporaryFile(delete=False) as tf:
             self.tname = tf.name
-        os.chmod(self.tname, 0755)
+        os.chmod(self.tname, 755)
 
     def tearDown(self):
         os.remove(self.tname)
 
     def test_chmod(self):
         "Should change mode"
-        nix.chmod(self.tname, 0644)
-        self.assertEqual(33188, os.stat(self.tname).st_mode)
+        nix.chmod(self.tname, 644)
+        self.assertEqual(33412, os.stat(self.tname).st_mode)
 
     def test_with_path(self):
         "Should work with Path objects"
-        nix.chmod(Path(self.tname), 0644)
-        self.assertEqual(33188, os.stat(self.tname).st_mode)
+        nix.chmod(Path(self.tname), 644)
+        self.assertEqual(33412, os.stat(self.tname).st_mode)
 
 class ChownTestCase(unittest.TestCase):
     def setUp(self):
@@ -136,7 +138,9 @@ class HeadTestCase(unittest.TestCase):
     def setUp(self):
         with tempfile.NamedTemporaryFile(delete=False) as tf:
             self.tname = tf.name
-            tf.write("\n".join([str(x) for x in range(100)]))
+            tf.write(bytearray(
+                    "\n".join([str(x) for x in range(100)]),
+                    'utf-8'))
 
     def tearDown(self):
         os.remove(self.tname)
