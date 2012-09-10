@@ -10,6 +10,7 @@ import grp
 import os
 import pwd as pwdb
 import shutil
+import sys
 
 from ffs import exceptions
 
@@ -256,7 +257,8 @@ def mkdir_p(path):
     """
     try:
         os.makedirs(str(path))
-    except OSError as exc: # Python >2.5
+    except OSError: # Python > 2.5
+        _, exc, _ = sys.exc_info()
         if exc.errno == errno.EEXIST:
             pass
         else: raise
