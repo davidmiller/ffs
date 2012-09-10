@@ -10,7 +10,7 @@ import re
 import tempfile
 import types
 
-from ffs import exceptions, nix, is_dir, is_file, size, _path_blacklists
+from ffs import exceptions, filesystem, nix, is_dir, is_file, size, _path_blacklists
 
 def _stringcoll(coll):
     """
@@ -45,32 +45,34 @@ class Path(str):
     Return: None
     Exceptions: TypeError
     """
+    fsflavour = filesystem.DiskFilesystem
 
     def __init__(self, value=None):
         """
-        As str objects are immutable, we must store the 'value'
+        as str objects are immutable, we must store the 'value'
         as an instance variable
         """
+        self.fs = self.fsflavour()
         if value is None:
-            self._value = nix.getwd()
+            self._value = self.fs.getwd()
         elif isinstance(value, (list, tuple)):
             if not value:
                 self._value = ''
             elif not _stringcoll(value):
-                raise TypeError('Can only accept collections of strings Larry')
-            self._value = os.sep.join(value)
+                raise TypeError('can only accept collections of strings larry')
+            self._value = self.fs.sep.join(value)
         elif isinstance(value, types.StringType):
             self._value = value
         else:
-            raise TypeError("Don't know how to initialize with {0} Larry... ".format(value))
-        # These are used by contextmanagers possibly
+            raise TypeError("don't know how to initialize with {0} larry... ".format(value))
+        # these are used by contextmanagers possibly
         self._file = None
         self._startdir = None
         self._readlinegen = None
         return
 
     def __repr__(self):
-        return self._value
+        return self
 
     def __str__(self):
         return self._value
@@ -80,128 +82,128 @@ class Path(str):
 
     def __eq__(self, other):
         """
-        Custom equality tests.
+        custom equality tests.
 
-        If the other is a string, compare against our self._value.
-        If the other is a Path, likewise.
-        If the other is anything else, Say No.
+        if the other is a string, compare against our self._value.
+        if the other is a path, likewise.
+        if the other is anything else, say no.
         """
         if isinstance(other, types.StringType):
             return self._value == other
-        elif isinstance(other, Path):
+        elif isinstance(other, path):
             return self._value == other._value
         return False
 
     def __hash__(self):
         """
-        We take the hashed value as that of the str _value.
-        This is to allow the idiom:
-        >>> p = Path('/foo')
+        we take the hashed value as that of the str _value.
+        this is to allow the idiom:
+        >>> p = path('/foo')
         >>> d = dict(p=1)
         >>> assert d['/foo'] == 1
 
-        Return: int
-        Exceptions: None
+        return: int
+        exceptions: none
         """
         return hash(self._value)
 
     def __nonzero__(self):
         """
-        Determine whether this is a path on the current filesystem.
+        determine whether this is a path on the current filesystem.
 
-        Allows the idiom:
+        allows the idiom:
 
         >>> if self:
         ...     with self as fh:
         ...         print self.read()
 
-        Return: bool
-        Exceptions:
+        return: bool
+        exceptions:
         """
-        return os.path.exists(self._value)
+        return self.fs.exists(self._value)
 
     def __len__(self):
         """
-        Determine the length of our Path
+        determine the length of our path
 
-        Return: int
-        Exceptions: None
+        return: int
+        exceptions: none
         """
         return len(self._split)
 
     def __getattribute__(self, attr):
         """
-        We override getattribute largely to allow us to blacklist
-        string methods that are not appropriate for Path objects,
+        we override getattribute largely to allow us to blacklist
+        string methods that are not appropriate for path objects,
         despite inheriting from str for stdlib duck-typing purposes.
         """
         if attr in _path_blacklists._strblacklist:
-            msg = "'Path' object has no attribute '{0}'".format(attr)
+            msg = "'path' object has no attribute '{0}'".format(attr)
             raise AttributeError(msg)
 
         return super(str, self).__getattribute__(attr)
 
     def __getitem__(self, key):
         """
-        Return the path component at KEY
+        return the path component at key
 
-        Arguments:
+        arguments:
         - `slicenum`: int
 
-        Return: Path
-        Exceptions: IndexError
+        return: path
+        exceptions: indexerror
         """
-        # Delegate to the list implementation
-        # We're relying on this to raise the correct exceptions
+        # delegate to the list implementation
+        # we're relying on this to raise the correct exceptions
         interesting = self._split.__getitem__(key)
 
-        # If a single element, return just that
+        # if a single element, return just that
         if isinstance(key, int):
             return Path(interesting)
 
-        # If we asked for [:int] and we're an abspath, prepend it
+        # if we asked for [:int] and we're an abspath, prepend it
         if isinstance(key, types.SliceType):
             if key.start in [None, 0] and key.stop:
-                # !!! What does joining by '/' do on Windoze?
-                frist = '{0}{1}'.format('/' if self.is_abspath else '', interesting[0])
+                # !!! what does joining by '/' do on windoze?
+                frist = '{0}{1}'.format(self.fs.sep if self.is_abspath else '', interesting[0])
                 interesting[0] = frist
 
-        return Path(os.sep.join(interesting))
+        return Path(self.fs.sep.join(interesting))
 
     def __getslice__(self, *args):
         """
-        As we're subclassing String, we have to override getslice.
-        This is a backwards compatibility hack, we just delegate to the
+        as we're subclassing string, we have to override getslice.
+        this is a backwards compatibility hack, we just delegate to the
         more modern getitem.
         """
         return self.__getitem__(slice(*args))
 
     def __setitem__(self, key, value):
         """
-        Paths are immutable, so raise TypeError
+        paths are immutable, so raise TypeError
 
-        Arguments:
+        arguments:
         - `key`: object
         - `value`: object
 
-        Return: None
-        Exceptions: TypeError
+        return: None
+        exceptions: TypeError
         """
-        raise TypeError('Path object does not support item assignment')
+        raise TypeError('path object does not support item assignment')
 
-    # !!! TODO: Do we want to do disk access here?
-    # !!! This behaves differently to __iter__.
+    # !!! todo: do we want to do disk access here?
+    # !!! this behaves differently to __iter__.
     def __contains__(self, item):
         """
-        Determine if ITEM is in the Path
+        determine if item is in the path
 
-        Arguments:
-        - `item`: Str
+        arguments:
+        - `item`: str
 
-        Return: bool
-        Exceptions: None
+        return: bool
+        exceptions: None
         """
-        if item[0] == os.sep:
+        if item[0] == self.fs.sep:
             regexp = r'^{0}'.format(item)
         else:
             regexp = r'^{0}|(?<=/){0}'.format(item)
@@ -209,163 +211,162 @@ class Path(str):
             return True
         return False
 
-    # !! This behaves differently to __contains__
+    # !! this behaves differently to __contains__
     def __iter__(self):
         """
-        Path objects iterate differently depending on context.
+        path objects iterate differently depending on context.
 
-        If we are a directory, we iterate through Path objects
+        if we are a directory, we iterate through path objects
         representing the contents of that directory.
 
-        If we represent a File, iteration returns one line at a time.
+        if we represent a file, iteration returns one line at a time.
 
-        If we do not exist, we raise DoesNotExistError
+        if we do not exist, we raise DoesNotExistError
 
-        Return: generator(str or Path)
-        Exceptions: DoesNotExist
+        return: generator(str or path)
+        exceptions: DoesNotExistError
         """
         if self.is_dir:
 
             def dirgen():
-                "Directory list generator"
-                for k in nix.ls(self._value):
+                "directory list generator"
+                for k in self.fs.ls(self._value):
                     yield Path(k)
             return dirgen()
 
         elif self.is_file:
             def filegen():
-                "File generator"
+                "file generator"
                 with self as fh:
                     for line in fh:
                         yield line
 
             return filegen()
 
-        msg = 'The path {0} does not exist - not sure how to iterate'.format(self)
+        msg = 'the path {0} does not exist - not sure how to iterate'.format(self)
         raise exceptions.DoesNotExistError(msg)
 
     def __add__(self, other):
         """
-        Add something to ourself, returning a new Path object.
+        add something to ourself, returning a new path object.
 
-        If OTHER is a Path or a String, append OTHER to SELF.
-        If OTHER is an empty collection, do nothing.
-        If OTHER is a collection containing items that are not Strings, Raise TypeError
-        If OTHER is a collection containing strings, append each to SELF as a
+        if other is a path or a string, append other to self.
+        if other is an empty collection, do nothing.
+        if other is a collection containing items that are not strings, raise TypeError
+        if other is a collection containing strings, append each to self as a
            path component.
-        Otherwise, Raise TypeError
+        otherwise, raise TypeError
 
-        Arguments:
+        arguments:
         - `other`:*
 
-        Return: Path
-        Exceptions: TypeError
+        return: path
+        exceptions: TypeError
         """
-        # Path()s and Strings are simple
+        # path()s and strings are simple
         if isinstance(other, Path):
             return self + other._value
         if isinstance(other, types.StringType):
-            return Path(os.sep.join([self._value, other]))
+            return Path(self.fs.sep.join([self._value, other]))
 
-        # Collections must be typechecked. Weak runtime type safety, yes, I know.
+        # collections must be typechecked. weak runtime type safety, yes, i know.
         if isinstance(other, (list, tuple)):
             if not other:
                 return self
             if not _stringcoll(other):
-                raise TypeError('Can only add collections containing String types')
-            return self + os.sep.join(other)
+                raise TypeError('can only add collections containing string types')
+            return self + self.fs.sep.join(other)
 
         raise TypeError()
 
-    # !!! Deal with path sep
-    # !!! Accept Path() and collections
+    # !!! accept path() and collections
     def __iadd__(self, other):
         """
-        In place addition overloading.
+        in place addition overloading.
 
-        We want to include the path separator
+        we want to include the path separator
         """
         if not isinstance(other, types.StringType):
             raise TypeError
-        # !!! What should we do on windoze?
-        if other[0] == '/':
+        # !!! what should we do on windoze?
+        if other[0] == self.fs.sep:
             return Path('{0}{1}'.format(self, other))
-        return Path('{0}{1}{2}'.format(self, os.sep, other))
+        return Path('{0}{1}{2}'.format(self, self.fs.sep, other))
 
-    # !!! Deal with different path.sep
+    # !!! deal with different path.sep
     def __radd__(self, other):
         """
-        Add to the right of a string
+        add to the right of a string
 
-        We want to include the path separator
+        we want to include the path separator
         """
         if not isinstance(other, types.StringType):
             raise TypeError
-        # !!! What should this do on windoze?
-        if other[0] == '/':
-            frist = '/'
+        # !!! what should this do on windoze?
+        if other[0] == self.fs.sep:
+            frist = self.fs.sep
         else:
             frist = ''
-        branches = [b for b in other.split(os.sep) + self._split if b]
-        return Path('{0}{1}'.format(frist, os.sep.join(branches)))
+        branches = [b for b in other.split(self.fs.sep) + self._split if b]
+        return Path('{0}{1}'.format(frist, self.fs.sep.join(branches)))
 
     def __div__(self, other):
         """
-        We overload the division operator to be path addition.
+        we overload the division operator to be path addition.
 
-        If OTHER is not a str or Path, we raise TypeError.
+        if other is not a str or path, we raise TypeError.
 
-        Arguments:
-        - `other`: str or Path
+        arguments:
+        - `other`: str or path
 
-        Return: Path
-        Exceptions: TypeError
+        return: path
+        exceptions: TypeError
         """
         return self + other
 
     def __lshift__(self, contents):
         """
-        We overload the << operator to allow us easy file writing according to the
+        we overload the << operator to allow us easy file writing according to the
         following rules:
 
-        If we are a directory, raise TypeError.
-        If CONTENTS is not a StringType, raise TypeError.
+        if we are a directory, raise TypeError.
+        if contents is not a stringtype, raise TypeError.
 
-        Otherwise, treat SELF like a file and append CONTENTS to it.
+        otherwise, treat self like a file and append contents to it.
 
-        Note::
+        note::
 
-            If components of the path leading to SELF do not exist,
-            they will be created. It is assumed that the user knows their
+            if components of the path leading to self do not exist,
+            they will be created. it is assumed that the user knows their
             own mind.
 
-        Arguments:
-        - `contents`: StringType
+        arguments:
+        - `contents`: stringtype
 
-        Return: None
-        Exceptions: TypeError
+        return: None
+        exceptions: TypeError
         """
         if self.is_dir:
-            raise TypeError("You can't write to a directory Larry... ")
+            raise TypeError("you can't write to a directory larry... ")
         if not isinstance(contents, types.StringTypes):
-            raise TypeError("You have to write with a StringType Larry... ")
+            raise TypeError("you have to write with a stringtype larry... ")
         with self.open('a') as fh:
             fh.write(contents)
         return
 
     def __enter__(self):
         """
-        Contextmanager code - if the path is a file, this should behave like
+        contextmanager code - if the path is a file, this should behave like
         with open(path) as foo:
 
-        If this is a directory, it should cd there and then return
+        if this is a directory, it should cd there and then return
         """
         if self.is_file:
-            self._file = open(self._value)
+            self._file = self.fs.open(self._value)
             return self._file
         elif self.is_dir:
-            self._startdir = nix.getwd()
-            nix.cd(self)
+            self._startdir = self.fs.getwd()
+            self.fs.cd(self)
             return
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -379,11 +380,10 @@ class Path(str):
             finally:
                 self._file = None
         elif self.is_dir:
-            nix.cd(self._startdir)
+            self.fs.cd(self._startdir)
             self._startdir = None
         return
 
-    # !!! Make this deal with os.sep
     @property
     def is_abspath(self):
         """
@@ -393,7 +393,7 @@ class Path(str):
         Exceptions: None
         """
         # !!! Windoze?
-        return self._value[0] == '/'
+        return self._value[0] == self.fs.sep
 
     @property
     def is_dir(self):
@@ -403,7 +403,7 @@ class Path(str):
         Return: bool
         Exceptions: None
         """
-        return is_dir(self._value)
+        return self.fs.is_branch(self._value)
 
     @property
     def is_file(self):
@@ -413,7 +413,7 @@ class Path(str):
         Return: bool
         Exceptions: None
         """
-        return is_file(self._value)
+        return self.fs.is_leaf(self._value)
 
     @property
     def _split(self):
@@ -424,8 +424,8 @@ class Path(str):
         Exceptions: None
         """
         if self.is_abspath:
-            return self._value[1:].split(os.sep)
-        return self._value.split(os.sep)
+            return self._value[1:].split(self.fs.sep)
+        return self._value.split(self.fs.sep)
 
     @property
     def abspath(self):
@@ -440,7 +440,7 @@ class Path(str):
         """
         if self.is_abspath:
             return self
-        return Path(os.path.abspath(os.path.expanduser(self)))
+        return Path(self.fs.abspath(self))
 
     @property
     def parent(self):
@@ -450,7 +450,7 @@ class Path(str):
         Return: Path
         Exceptions: None
         """
-        return Path(os.path.dirname(str(self)))
+        return Path(self.fs.parent(str(self)))
 
     # !!! ext
 
@@ -477,9 +477,9 @@ class Path(str):
         """
         if self.is_dir:
             raise TypeError("Opening a directory doesn't really mean anything Larry... ")
-        if not is_dir(self[:-1]):
-            nix.mkdir_p(self[:-1])
-        with open(self._value, mode) as fh:
+        if not self.fs.is_branch(self.parent): # we only have to check one level
+            self.fs.mkdir((self[:-1]), parents=True)
+        with self.fs.open(self._value, mode) as fh:
             yield fh
 
     def read(self):
@@ -577,9 +577,12 @@ class Path(str):
         Return: Path
         Exceptions: None
         """
-        tmpath = tempfile.mkdtemp()
-        yield klass(tmpath)
-        nix.rm_r(tmpath)
+        fs = klass.fsflavour()
+        tmpath = fs.tempdir()
+        try:
+            yield klass(tmpath)
+        finally:
+            fs.rm(tmpath, recursive=True)
 
     def ls(self):
         """
@@ -595,7 +598,7 @@ class Path(str):
         if self.is_file:
             return self._value
         elif self.is_dir:
-            return nix.ls(self)
+            return self.fs.ls(self)
         msg = "Cannot access {0}: No such file or directory".format(self)
         raise exceptions.DoesNotExistError(msg)
 
@@ -619,10 +622,10 @@ class Path(str):
         if self.is_dir and not args:
             raise TypeError("Can't touch() a directory!")
         if not args:
-            nix.touch(self)
+            self.fs.touch(self)
         else:
             for arg in args:
-                nix.touch(self + arg)
+                self.fs.touch(self + arg)
 
     def mkdir(self, *args):
         """
@@ -644,10 +647,10 @@ class Path(str):
         if self.is_file:
             raise TypeError("Can't mkdir() a file.")
         if not args:
-            nix.mkdir(self)
+            self.fs.mkdir(self)
         else:
             for arg in args:
-                nix.mkdir(self + arg)
+                self.fs.mkdir(self + arg)
         return
 
     # !!! cp

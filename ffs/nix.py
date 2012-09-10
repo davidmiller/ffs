@@ -277,24 +277,30 @@ def rm(*targets, **kw):
     Python translation of GNU rm
 
     If the keyword argument FORCE is True, ignore nonexistant files.
+    If the keyword argument RECURSIVE is True, remove the entire tree
+      below each TARGETS
 
     Arguments:
     - `*targets`: all target paths
     - `force`: bool
+    - `recursive`: bool
 
     Return: None
     Exceptions: DoesNotExistError
     """
+    fn = os.remove
+    if 'recursive'in kw and kw['recursive']:
+        fn = rm_r
     if 'force' in kw and kw['force']:
         for target in targets:
             try:
-                os.remove(str(target))
+                fn(str(target))
             except OSError:
                 pass # Either never raised or explicitly ignored, so pass
     else:
         for target in targets:
             try:
-                os.remove(str(target))
+                fn(str(target))
             except OSError:
                 if not os.path.exists(str(target)):
                     raise exceptions.DoesNotExistError(

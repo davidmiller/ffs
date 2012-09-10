@@ -136,10 +136,24 @@ class BaseFilesystem(object):
         """
         raise NotImplementedError("!")
 
+    def expanduser(self, resource):
+        """
+        Expand ~ etc for RESOURCE
+
+        Arguments:
+        - `resource`: str or Path
+
+        Return: str or Path
+        Exceptions: None
+        """
+        raise NotImplementedError("!")
+
     def abspath(self, resource):
         """
         Return the absolute path for RESOURCE given the
-        current state of our filesystem representation
+        current state of our filesystem representation.
+
+        Implicitly calls expanduser on RESOURCE.
 
         Arguments:
         - `resource`: str or Path
@@ -161,9 +175,11 @@ class BaseFilesystem(object):
         """
         raise NotImplementedError("!")
 
-    def mkdir(self, path):
+    def mkdir(self, path, parents=False):
         """
         Create the branch PATH on our filesystem.
+
+        If PARENTS is truthy, make parent directories as needed.
 
         Arguments:
         - `path`: str or Path
@@ -222,6 +238,15 @@ class BaseFilesystem(object):
         """
         raise NotImplementedError("!")
 
+    def tempdir(self):
+        """
+        Create a temporary directory on this filesystem and return it's path.
+
+        Return: str or Path
+        Exceptions: None
+        """
+        raise NotImplementedError("!")
+
     def stat(self, resource):
         """
         Return stat info (or equivalent) about RESOUCE
@@ -234,12 +259,16 @@ class BaseFilesystem(object):
         """
         raise NotImplementedError("!")
 
-    def rm(self, resource):
+    def rm(self, resource, recursive=False):
         """
         Remove RESOURCE from the filesystem
 
+        If the keyword argument RECURSIVE is True, remove the tree below
+          this point.
+
         Arguments:
         - `resource`: str or Path
+        - `recursive`: bool
 
         Return: None
         Exceptions: None
@@ -295,13 +324,17 @@ class DiskFilesystem(BaseFilesystem):
     def open(self, resource, mode='r'):
         return open(resource, mode)
 
+    @wraps(BaseFilesystem.expanduser)
+    def expanduser(self, resource):
+        return os.path.expanduser(resource)
+
     @wraps(BaseFilesystem.abspath)
     def abspath(self, resource):
-        return os.path.abspath(resource)
+        return os.path.abspath(self.expanduser(resource))
 
     @wraps(BaseFilesystem.mkdir)
-    def mkdir(self, resource):
-        return nix.mkdir(resource)
+    def mkdir(self, resource, parents=False):
+        return nix.mkdir(resource, parents=parents)
 
     @wraps(BaseFilesystem.cp)
     def cp(self, resource, target):
@@ -321,9 +354,15 @@ class DiskFilesystem(BaseFilesystem):
         self.touch(tfile)
         return tfile
 
+    @wraps(BaseFilesystem.tempdir)
+    def tempdir(self):
+        tdir = tempfile.mkdtemp()
+        self.mkdir(tdir)
+        return tdir
+
     @wraps(BaseFilesystem.rm)
-    def rm(self, resource):
-        return nix.rm(resource)
+    def rm(self, resource, recursive=False):
+        return nix.rm(resource, recursive=recursive)
 
 
 

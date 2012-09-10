@@ -71,6 +71,10 @@ class MagicMethodsTestCase(PathTestCase):
         "Print like a str"
         self.assertEqual('/foo', Path('/foo').__repr__())
 
+    def test_str(self):
+        "Print like a str"
+        self.assertEqual('/foo', Path('/foo').__str__())
+
     def test_eq(self):
         "Can we test equality against strings?"
         self.assertEqual('/foo/bar', Path('/foo/bar'))

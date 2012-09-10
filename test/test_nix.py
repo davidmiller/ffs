@@ -363,6 +363,15 @@ class RmTestCase(unittest.TestCase):
         nix.rm(nofile, force=True)
         self.assertFalse(os.path.exists(nofile))
 
+    def test_rm_r(self):
+        "Remove the tree below something"
+        newdir = tempfile.mkdtemp()
+        os.mkdir(newdir + os.sep + 'subdir')
+        filepath = newdir + os.sep + 'subdir' + os.sep + 'some.txt'
+        with open(filepath, 'w'):
+            pass # touch()
+        nix.rm(newdir, recursive=True)
+
     def test_rm_raises(self):
         "Raise if a file does not exist"
         nofile = 'my/nonexistant/file.txt'

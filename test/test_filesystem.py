@@ -1,6 +1,7 @@
 """
 Unittests for the ffs.filesystem module
 """
+import getpass
 import os
 import sys
 import tempfile
@@ -61,6 +62,11 @@ class BaseFilesystemTestCase(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             self.fs.is_leaf(None)
 
+    def test_expanduser(self):
+        "Expanduser raises"
+        with self.assertRaises(NotImplementedError):
+            self.fs.expanduser(None)
+
     def test_abspath(self):
         "Abspath raises"
         with self.assertRaises(NotImplementedError):
@@ -105,6 +111,11 @@ class BaseFilesystemTestCase(unittest.TestCase):
         "Tempfile raises"
         with self.assertRaises(NotImplementedError):
             self.fs.tempfile()
+
+    def test_tempdir(self):
+        "Tempdir raises"
+        with self.assertRaises(NotImplementedError):
+            self.fs.tempdir()
 
 
 class DiskFilesystemTestCase(unittest.TestCase):
@@ -184,17 +195,37 @@ class DiskFilesystemTestCase(unittest.TestCase):
             self.assertEqual('filelike', fh)
             po.assert_called_with(self.tfile, 'wb')
 
+    def test_expanduser(self):
+        "Expand ~"
+        if not sys.platform.startswith('win'):
+            user = getpass.getuser()
+            expected = '/home/{0}/.emacs'.format(user)
+            self.assertEqual(expected, self.fs.expanduser('~/.emacs'))
+
     def test_abspath(self):
         "Abspath it"
         with patch('os.path.abspath') as pabs:
             self.fs.abspath('foo')
             pabs.assert_called_with('foo')
 
+    def test_abspath_expanduser(self):
+        "Implicitly expanduser in abspath"
+        if not sys.platform.startswith('win'):
+            user = getpass.getuser()
+            expected = '/home/{0}/.emacs'.format(user)
+            self.assertEqual(expected, self.fs.abspath('~/.emacs'))
+
     def test_mkdir(self):
         "Mkdir it"
         with patch('ffs.nix.mkdir') as pabs:
             self.fs.mkdir('foo')
-            pabs.assert_called_with('foo')
+            pabs.assert_called_with('foo', parents=False)
+
+    def test_mkdir_parents(self):
+        "Should make parents"
+        with patch('ffs.nix.mkdir') as pabs:
+            self.fs.mkdir('foo', parents=True)
+            pabs.assert_called_with('foo', parents=True)
 
     def test_cp(self):
         "Copy it"
@@ -224,12 +255,26 @@ class DiskFilesystemTestCase(unittest.TestCase):
         "Create something temporary"
         tmpfile = self.fs.tempfile()
         self.assertTrue(os.path.exists(tmpfile))
+        self.assertTrue(os.path.isfile(tmpfile))
+
+    def test_tempdir(self):
+        "Create a temp dir"
+        tmpdir = self.fs.tempdir()
+        self.assertTrue(os.path.exists(tmpdir))
+        self.assertTrue(os.path.isdir(tmpdir))
 
     def test_rm(self):
         "Remove a file"
         self.assertTrue(os.path.exists(self.tfile))
         self.fs.rm(self.tfile)
         self.assertFalse(os.path.exists(self.tfile))
+
+    # def test_ln(self):
+    #     "Link it"
+    #     with patch('ffs.nix.ln') as pln:
+    #         self.fs.ln('foo', 'bar')
+    #         pln.assert_called_with('foo', 'bar', symbolic=False)
+
 
 if __name__ == '__main__':
     unittest.main()
