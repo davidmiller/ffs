@@ -5,7 +5,10 @@ from __future__ import with_statement
 
 import getpass
 import itertools
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 import os
 import sys
 import tempfile
