@@ -106,7 +106,10 @@ class SizeTestCase(unittest.TestCase):
     def test_hsize(self):
         """ Get the hex size of a file """
         with tempfile.NamedTemporaryFile(delete=False) as ebl:
-            ebl.write(b"Hello Beautiful World!\n")
+            contents = "Hello Beautiful World!\n"
+            if sys.version_info > (2, 7):
+                contents = bytearray("Hello Beautiful World!\n", 'utf-8')
+            ebl.write(contents)
             ebl.close()
             self.assertEqual('0x17', ffs.hsize(ebl.name))
 
