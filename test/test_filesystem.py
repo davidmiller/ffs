@@ -1,6 +1,8 @@
 """
 Unittests for the ffs.filesystem module
 """
+from __future__ import with_statement
+
 import getpass
 import os
 import sys

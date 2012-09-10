@@ -1,6 +1,8 @@
 """
 Unittests for the ffs.nix module
 """
+from __future__ import with_statement
+
 import filecmp
 import os
 import sys

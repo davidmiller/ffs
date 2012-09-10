@@ -1,6 +1,8 @@
 """
 Unittests for ffs.path
 """
+from __future__ import with_statement
+
 import getpass
 import io
 import itertools

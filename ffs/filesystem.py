@@ -4,6 +4,8 @@ ffs.filesystem
 Filesystem abstraction to allow working with different
 filesystem-like systems with the same abstraction model.
 """
+from __future__ import with_statement
+
 import os
 import tempfile
 

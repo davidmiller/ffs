@@ -1,6 +1,8 @@
 """
 *nix style python functions
 """
+from __future__ import with_statement
+
 import contextlib
 import errno
 import filecmp
