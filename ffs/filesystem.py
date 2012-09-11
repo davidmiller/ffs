@@ -366,5 +366,3 @@ class DiskFilesystem(BaseFilesystem):
     def rm(self, resource, recursive=False):
         return nix.rm(resource, recursive=recursive)
 
-
-

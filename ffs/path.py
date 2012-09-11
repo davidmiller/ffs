@@ -36,21 +36,9 @@ def _stringcoll(coll):
 
 # !!! Normalization to clean up ../, . && //
 
-class Path(str):
+class BasePath(str):
     """
-    Provide a pleasant API for working with file/directory paths.
-
-    If VALUE is None, then then initial value is the current working directory.
-    If VALUE is a string, take this to be a filesystem path of some description.
-    If VALUE is a list or tuple containing strings, take these as components of a
-      filesytem path.
-    If VALUE is a list or tuple containing non-strings, non-Paths, raise TypeError.
-
-    Arguments:
-    - `value`: str or list[str]
-
-    Return: None
-    Exceptions: TypeError
+    Base Path class from which other implementations will inherit
     """
     fsflavour = filesystem.DiskFilesystem
 
@@ -691,3 +679,22 @@ class Path(str):
     # !!! json_dump()
     # !!! pickle_load()
     # !!! pickle_dump()
+
+
+
+class Path(BasePath):
+    """
+    Provide a pleasant API for working with file/directory paths.
+
+    If VALUE is None, then then initial value is the current working directory.
+    If VALUE is a string, take this to be a filesystem path of some description.
+    If VALUE is a list or tuple containing strings, take these as components of a
+      filesytem path.
+    If VALUE is a list or tuple containing non-strings, non-Paths, raise TypeError.
+
+    Arguments:
+    - `value`: str or list[str]
+
+    Return: None
+    Exceptions: TypeError
+    """
