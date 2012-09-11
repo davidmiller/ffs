@@ -1,8 +1,9 @@
 History
 -------
 
-0.0.3
-+++++
+0.0.3 (Sep 11 2012)
++++++++++++++++++++
+
 Reduce the level of String duck-typing to sane levels. Although we do inherit
 from str, we bail with AttributeErrors when we think that we're being used
 for something absurd - e.g. what's the sane use of Path().splitlines() ?
@@ -17,6 +18,9 @@ many directories with one call::
     >>> p.mkdir('BUILD', 'SOURCES', 'SPECS', 'RPM', 'SRPMS')
 
 Maintain immutability for in-place append and update tests to catch this regression.
+
+Add a Filesystem abstraction layer that allows us to use *nix semantics and
+metaphors with anything that uses Path-like structures.
 
 0.0.2 (Aug 21 2012)
 +++++++++++++++++++

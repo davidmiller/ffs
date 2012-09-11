@@ -13,7 +13,7 @@ if mo:
 else:
     raise RuntimeError("Unable to find version string in {0}".format(VERSION_FILE))
 
-install_requires = []
+install_requires = ['six']
 if sys.version_info < (2, 6):
     install_requires.append('smplejson')
 
