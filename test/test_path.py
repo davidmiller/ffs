@@ -241,6 +241,13 @@ class MagicMethodsTestCase(PathTestCase):
         self.assertEqual('/foo/bar/baz.txt', newpath)
         self.assertIsInstance(newpath, Path)
 
+    def test_div_twice(self):
+        "Should be able to / many"
+        p = Path('/foo')
+        newpath = p / 'bar' / 'baz.txt'
+        self.assertEqual('/foo/bar/baz.txt', newpath)
+        self.assertIsInstance(newpath, Path)
+
     def test_div_notstring(self):
         "Raise if we add a non string, non path"
         with self.assertRaises(TypeError):
