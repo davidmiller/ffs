@@ -54,9 +54,12 @@ The api for the Path class in ffs *Will* change, without depreciation warnings, 
 minor point releases. Hell, this thing's only *on* PyPi at this stage so I can pull it
 into a CI system without having to maintain my own cheeseshop.
 
+`Docs`_
+
 `Source`_
 
 `Issues`_
 
+.. _Docs: http://www.deadpansincerity.com/docs/ffs
 .. _Source: https://github.com/davidmiller/ffs
 .. _Issues: https://github.com/davidmiller/ffs/issues
