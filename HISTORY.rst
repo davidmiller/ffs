@@ -1,6 +1,19 @@
 History
 -------
 
+0.0.4
++++++
+
+Copying:
+Add a GNU cp clone to nix.
+Add the --recursive argument to the filesystem cp implementation
+Add a cp(target) method to the Path class
+
+Touching:
+When touching a subpath where some parents do not exist, Path().touch('this/that/theother.txt')
+should create them and assume the caller knows their own mind. This is consistent with the
+behaviour of << and open().
+
 0.0.3 (Sep 11 2012)
 +++++++++++++++++++
 

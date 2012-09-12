@@ -191,13 +191,15 @@ class BaseFilesystem(object):
         """
         raise NotImplementedError("!")
 
-    def cp(self, resource, target):
+    def cp(self, resource, target, recursive=False):
         """
         Copy RESOURCE to TARGET.
+        If RECURSIVE is True, copy the tree below RESOURCE recursively.
 
         Arguments:
         - `resource`: str or Path
         - `target`: str or Path
+        - `recursive`: bool
 
         Return: None
         Exceptions: None
@@ -339,8 +341,8 @@ class DiskFilesystem(BaseFilesystem):
         return nix.mkdir(resource, parents=parents)
 
     @wraps(BaseFilesystem.cp)
-    def cp(self, resource, target):
-        return nix.cp(resource, target)
+    def cp(self, resource, target, recursive=False):
+        return nix.cp(resource, target, recursive=recursive)
 
     @wraps(BaseFilesystem.ln)
     def ln(self, resource, target, symbolic=False):

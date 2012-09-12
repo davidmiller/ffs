@@ -3,6 +3,7 @@ Unittests for ffs.path
 """
 from __future__ import with_statement
 
+import filecmp
 import getpass
 import itertools
 try:
@@ -18,6 +19,8 @@ if sys.version_info <  (2, 7):
     import unittest2 as unittest
 if sys.version.startswith('3.1'):
     from ffs import _unittest31 as unittest
+
+import six
 
 from ffs import exceptions, path, _path_blacklists
 from ffs.path import Path
@@ -189,6 +192,12 @@ class MagicMethodsTestCase(PathTestCase):
         p = p + tuple()
         self.assertEqual('/foo', p)
         self.assertIsInstance(p, Path)
+
+    def test_add_unicode(self):
+        "Can we add unicode Paths?"
+        p = Path('foo')
+        p2 = p + six.u('bar')
+        self.assertEqual('foo/bar', p2)
 
     def test_iadd(self):
         "iAdding path components should do the right thing."
@@ -525,6 +534,18 @@ class NixMethodsTestCase(PathTestCase):
         self.assertTrue(os.path.isfile(self.tdir + '/one.txt'))
         self.assertTrue(os.path.isfile(self.tdir + '/two.txt'))
 
+    def test_touch_child_no_self(self):
+        "Should imply self"
+        p = Path(self.tdir) + 'that'
+        p.touch('theother.txt')
+        self.assertTrue(os.path.isfile(self.tdir + '/that/theother.txt'))
+
+    def test_touch_child_tree(self):
+        "Should imply the tree"
+        p = Path(self.tdir)
+        p.touch('that/theother.txt')
+        self.assertTrue(os.path.isfile(self.tdir + '/that/theother.txt'))
+
     def test_mkdir_file(self):
         "Should raise TypeError"
         p = Path(self.tmpath)
@@ -547,6 +568,27 @@ class NixMethodsTestCase(PathTestCase):
         self.assertTrue(os.path.isdir(self.tdir + '/one'))
         self.assertTrue(os.path.isdir(self.tdir + '/two'))
 
+    def test_cp_file(self):
+        "Copy self to dest"
+        p = Path(self.tdir) + 'some.txt'
+        p << 'contents'
+        p.cp(p.parent + 'some2.txt')
+        self.assertTrue(filecmp.cmp(p, p.parent + 'some2.txt'))
+
+    def test_cp_dir(self):
+        "Intuits Directory, recursive"
+        p = Path(self.tdir)
+        p.mkdir('somedir')
+        pd = p + 'somedir'
+        pd.cp(p + 'otherdir')
+        self.assertTrue(os.path.isdir(pd))
+        self.assertTrue(os.path.isdir(p + 'otherdir'))
+
+    def test_cp_nonexistant(self):
+        "Should raise"
+        with self.assertRaises(exceptions.DoesNotExistError):
+            p = Path('does/not/exist/here')
+            p.cp('will/not/exist/there')
 
 class JsonishTestCase(unittest.TestCase):
     "Tests for the JSON operations"

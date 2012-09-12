@@ -6,6 +6,7 @@ import sys
 import unittest
 
 from mock import patch
+import six
 
 from ffs import Path
 
@@ -20,6 +21,12 @@ class PathRegressionTestCase(unittest.TestCase):
         p2 = os.path.join(p, 'foo')
         self.assertEqual('/tmp', p)
         self.assertEqual('/tmp/foo', p2)
+
+    def test_div_unicode_withformatting(self):
+        "Should just join the paths."
+        p = Path('/tmp')
+        p = p / six.u('foo') / '{0}.xml'.format(six.u('bar'))
+        self.assertEqual('/tmp/foo/bar.xml', p)
 
 
 if __name__ == '__main__':

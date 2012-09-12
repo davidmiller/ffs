@@ -5,6 +5,7 @@ from __future__ import with_statement
 
 import filecmp
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -133,6 +134,57 @@ class ChownTestCase(unittest.TestCase):
         with patch.object(nix.os, 'chown') as pchown:
             nix.chown('/hai', uid = 100)
             pchown.assert_called_once_with('/hai', 100, -1)
+
+class CPTestCase(unittest.TestCase):
+    def setUp(self):
+        self.tdir = Path(tempfile.mkdtemp())
+
+    def tearDown(self):
+        if os.path.exists(self.tdir):
+            shutil.rmtree(self.tdir)
+
+    def test_cp_file(self):
+        "Copy self to dest"
+        f1 = self.tdir / 'one.txt'
+        f2 = self.tdir + 'two.txt'
+        f1 << 'Contents!'
+        nix.cp(f1, f2)
+        self.assertTrue(filecmp.cmp(f1, f2, False))
+
+    def test_cp_dir(self):
+        "Is a no-op"
+        self.tdir.mkdir('this')
+        p = self.tdir / 'that'
+        nix.cp(self.tdir / 'this', p)
+        self.assertFalse(p)
+
+    def test_cp_file_recursive(self):
+        "Recursive does nothing"
+        f1 = self.tdir / 'one.txt'
+        f2 = self.tdir + 'two.txt'
+        f1 << 'Contents!'
+        nix.cp(f1, f2, recursive=True)
+        self.assertTrue(filecmp.cmp(f1, f2, False))
+
+    def test_cp_dir_recursive(self):
+        "Should copy the tree"
+        d1 = self.tdir / 'this'
+        d2 = self.tdir / 'that'
+        d1.touch('one.txt', 'two.txt')
+        self.tdir.mkdir('this')
+        nix.cp(d1, d2, recursive=True)
+        self.assertEqual([], filecmp.dircmp(d1, d2).diff_files)
+
+    def test_cp_nonexistant(self):
+        "Should raise"
+        with self.assertRaises(exceptions.DoesNotExistError):
+            nix.cp(self.tdir + 'whatever', self.tdir + 'whateverer')
+
+    def test_cp_target_exists(self):
+        "Should raise"
+        with self.assertRaises(exceptions.ExistsError):
+            self.tdir.touch('whatever', 'whateverer')
+            nix.cp(self.tdir + 'whatever', self.tdir + 'whateverer')
 
 
 class HeadTestCase(unittest.TestCase):

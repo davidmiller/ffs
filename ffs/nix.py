@@ -121,7 +121,36 @@ def chown(path, user=None, group=None, uid=None, gid=None):
 # ::chown_R (FileUtils)
 
 cmp = filecmp.cmp
-cp = shutil.copy2
+
+def cp(resource, target, recursive=False):
+    """
+    Python translation of GNU cp.
+
+    Copy RESOURCE to TARGET.
+    If RECURSIVE is True and RESOURCE is a directory, copy the tree.
+    If RECURSIVE is False and RESOURCE is a directory, a no-op
+    If RESOURCE does not exist, raise DoesNotExistError
+    If TARGET exists, raise ExistsError
+
+    Arguments:
+    - `resource`: str or Path
+    - `target`: str or Path
+    - `recursive`: bool
+
+    Return: None
+    Exceptions: DoesNotExistError, ExistsError
+    """
+    if not os.path.exists(resource):
+        raise exceptions.DoesNotExistError("Can't copy something that doesn't exist Larry... ")
+    if os.path.exists(target):
+        raise exceptions.ExistsError("Won't overwrite an existing target Larry... ")
+    if os.path.isdir(resource):
+        if recursive:
+            return shutil.copytree(resource, target)
+        return
+    shutil.copy2(resource, target)
+    return
+
 cp_r = shutil.copytree
 
 getwd = os.getcwd

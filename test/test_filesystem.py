@@ -233,7 +233,13 @@ class DiskFilesystemTestCase(unittest.TestCase):
         "Copy it"
         with patch('ffs.nix.cp') as pcp:
             self.fs.cp('foo', 'bar')
-            pcp.assert_called_with('foo', 'bar')
+            pcp.assert_called_with('foo', 'bar', recursive = False)
+
+    def test_cp_recursive(self):
+        "Copy recursive"
+        with patch('ffs.nix.cp') as pcp:
+            self.fs.cp('foo', 'bar', recursive = True)
+            pcp.assert_called_with('foo', 'bar', recursive = True)
 
     def test_ln(self):
         "Link it"

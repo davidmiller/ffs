@@ -628,8 +628,13 @@ class BasePath(str):
         if not args:
             self.fs.touch(self)
         else:
+            if not self:
+                self.fs.mkdir(self, parents=True)
             for arg in args:
-                self.fs.touch(self + arg)
+                tfile = self + arg
+                if not tfile.parent:
+                    self.fs.mkdir(tfile.parent, parents=True)
+                self.fs.touch(tfile)
 
     def mkdir(self, *args):
         """
@@ -657,7 +662,25 @@ class BasePath(str):
                 self.fs.mkdir(self + arg)
         return
 
-    # !!! cp
+    def cp(self, target):
+        """
+        Copy SELF to TARGET.
+
+        If SELF is a directory, assume that you want to copy the tree.
+        If SELF does not exist, raise DoesNotExistError.
+
+        Arguments:
+        - `target`: str or Path
+
+        Return: None
+        Exceptions: DoesNotExistError
+        """
+        recursive = False
+        if self.is_dir:
+            recursive = True
+        self.fs.cp(self, target, recursive=recursive)
+        return
+
     # !!! mv
 
     def json_load(self):
