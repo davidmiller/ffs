@@ -1,8 +1,8 @@
 History
 -------
 
-0.0.4
-+++++
+0.0.4.1 (Sep 12 2012)
++++++++++++++++++++++
 
 Copying:
 Add a GNU cp clone to nix.
