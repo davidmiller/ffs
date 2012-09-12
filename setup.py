@@ -1,4 +1,5 @@
 
+
 import re
 import sys
 
@@ -22,7 +23,7 @@ setup(
     version = VERSION,
     author = "David Miller",
     author_email = "david@deadpansincerity.com",
-    url = "http://github.com/davidmiller/ffs",
+    url = "http://www.deadpansincerity.com/docs/ffs",
     description = "Python Filesystem Api helpers",
     long_description = open('README.rst').read() + "\n\n" +  open('HISTORY.rst').read(),
     classifiers = [
