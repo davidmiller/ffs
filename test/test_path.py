@@ -47,7 +47,7 @@ class PathTestCase(unittest.TestCase):
 
     def tearDown(self):
         rm(self.tmpath)
-        rm_r(self.tdir)
+        rm(self.tdir, force=True, recursive=True)
 
 
 class MagicMethodsTestCase(PathTestCase):
@@ -589,6 +589,32 @@ class NixMethodsTestCase(PathTestCase):
         with self.assertRaises(exceptions.DoesNotExistError):
             p = Path('does/not/exist/here')
             p.cp('will/not/exist/there')
+
+    def test_mv_file(self):
+        "Should move a file"
+        p = Path(self.tdir) + 'some.txt'
+        p << 'contents'
+        self.assertTrue(p.is_file)
+        p2 = p.mv(p.parent + 'some2.txt')
+        self.assertTrue(p2.is_file)
+        self.assertFalse(p.is_file)
+        self.assertEqual('contents', open(p2).read())
+
+    def test_mv_dir(self):
+        "Should move a directory"
+        p = Path(self.tdir)
+        p.mkdir('somedir')
+        pd = p + 'somedir'
+        self.assertTrue(p.is_dir)
+        p2 = p.mv(p.parent + 'some2')
+        self.assertTrue(p2.is_dir)
+        self.assertFalse(p.is_dir)
+
+    def test_mv_nonexistent(self):
+        "Should raise"
+        p = Path(self.tdir) + 'nonexistant'
+        with self.assertRaises(exceptions.DoesNotExistError):
+            p.mv(self.tdir)
 
 class JsonishTestCase(unittest.TestCase):
     "Tests for the JSON operations"

@@ -56,6 +56,8 @@ class BasePath(str):
             elif not _stringcoll(value):
                 raise TypeError('can only accept collections of strings larry')
             self._value = self.fs.sep.join(value)
+        elif isinstance(value, Path):
+            self._value = value._value
         elif isinstance(value, six.string_types):
             self._value = value
         else:
@@ -454,7 +456,9 @@ class BasePath(str):
         Return: Path
         Exceptions: None
         """
-        return Path(self.fs.parent(str(self)))
+        strself = str(self)
+        parnt = self.fs.parent(strself)
+        return Path(parnt)
 
     # !!! ext
 
@@ -681,7 +685,23 @@ class BasePath(str):
         self.fs.cp(self, target, recursive=recursive)
         return
 
-    # !!! mv
+    def mv(self, target):
+        """
+        Move SELF to TARGET.
+        Return a Path object representing the new location at TARGET.
+
+        If SELF does not exist, raise DoesNotExistError
+
+        Arguments:
+        - `target`: str or Path
+
+        Return: Path
+        Exceptions: DoesNotExistError
+        """
+        if not self:
+            raise exceptions.DoesNotExistError("Can't move nothing Larry... ")
+        self.fs.mv(self, target)
+        return Path(target)
 
     def json_load(self):
         """
