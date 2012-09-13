@@ -29,7 +29,6 @@ _strblacklist = [
             'rindex',
             'rjust',
             'rsplit',
-            'rstrip',
             'splitlines',
             'swapcase',
             'title',
