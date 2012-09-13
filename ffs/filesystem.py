@@ -221,6 +221,20 @@ class BaseFilesystem(object):
         """
         raise NotImplementedError("!")
 
+    def mv(self, resource, target):
+        """
+        Move RESOURCE to TARGET.
+
+        Arguments:
+        - `resource`: str or Path
+        - `target`: str or Path
+
+
+        Return:  None
+        Exceptions: None
+        """
+        raise NotImplementedError("!")
+
     def touch(self, resource):
         """
         Create a leaf node RESOURCE on the filesystem
@@ -347,6 +361,10 @@ class DiskFilesystem(BaseFilesystem):
     @wraps(BaseFilesystem.ln)
     def ln(self, resource, target, symbolic=False):
         return nix.ln(resource, target, symbolic=symbolic)
+
+    @wraps(BaseFilesystem.mv)
+    def mv(self, resource, target):
+        return nix.mv(resource, target)
 
     @wraps(BaseFilesystem.touch)
     def touch(self, resource):

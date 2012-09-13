@@ -94,6 +94,11 @@ class BaseFilesystemTestCase(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             self.fs.ln(None, None)
 
+    def test_mv(self):
+        "Mv raises"
+        with self.assertRaises(NotImplementedError):
+            self.fs.mv(None, None)
+
     def test_rm(self):
         "Rm raises"
         with self.assertRaises(NotImplementedError):
@@ -252,6 +257,12 @@ class DiskFilesystemTestCase(unittest.TestCase):
         with patch('ffs.nix.ln_s') as pln:
             self.fs.ln('foo', 'bar', symbolic=True)
             pln.assert_called_with('foo', 'bar')
+
+    def test_mv(self):
+        "Move it"
+        with patch('ffs.nix.mv') as pmv:
+            self.fs.mv('foo', 'bar')
+            pmv.assert_called_with('foo', 'bar')
 
     def test_touch(self):
         "Should be able to touch"
