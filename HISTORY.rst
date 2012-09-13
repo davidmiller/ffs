@@ -1,6 +1,13 @@
 History
 -------
 
+0.0.5
++++++
+
+Add a mv() method to Path.
+Re-enable rstrip(). (Stdlib uses it e.g. shutil._basename)
+Catch the case where we call Path(Path('foo')) and get recursion errors.
+
 0.0.4.1 (Sep 12 2012)
 +++++++++++++++++++++
 
