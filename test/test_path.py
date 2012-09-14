@@ -39,6 +39,31 @@ class StringCollTestCase(unittest.TestCase):
             self.assertFalse(path._stringcoll(no))
 
 
+class BasePathTestCase(unittest.TestCase):
+    def setUp(self):
+        pass
+    # initialize with another httppathxb
+        # Test add returninstance
+    # test iadd returninstance
+    # test radd returninstance
+    # abspath returninstance
+    # Parent returninstance
+    # size
+    # Read
+    # readline
+    # open
+    # truncate
+    # contents
+    # json_load
+    def test_foo(self):
+        """ """
+        pass
+
+    def tearDown(self):
+        pass
+
+
+
 class PathTestCase(unittest.TestCase):
     def setUp(self):
         tmpath = self.tmpath = tempfile.mktemp()
@@ -114,6 +139,12 @@ class MagicMethodsTestCase(PathTestCase):
         self.assertEqual(p[0:2], '/foo/bar')
         self.assertEqual(p[1:3], 'bar/baz')
         self.assertEqual(p[-1],  'baz')
+
+    def test_getitem_klass(self):
+        "Should be a Path"
+        p = Path('/foo/bar')
+        self.assertIsInstance(p[:1], Path)
+        self.assertIsInstance(p[0], Path)
 
     def test_setitem(self):
         "Raise on item assignment"

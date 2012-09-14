@@ -87,8 +87,6 @@ class BasePath(str):
         """
         if isinstance(other, six.string_types):
             return self._value == other
-        elif isinstance(other, path):
-            return self._value == other._value
         return False
 
     def __hash__(self):
@@ -153,13 +151,14 @@ class BasePath(str):
         return: path
         exceptions: indexerror
         """
+        Klass = self.__class__
         # delegate to the list implementation
         # we're relying on this to raise the correct exceptions
         interesting = self._split.__getitem__(key)
 
         # if a single element, return just that
         if isinstance(key, int):
-            return Path(interesting)
+            return Klass(interesting)
 
         # if we asked for [:int] and we're an abspath, prepend it
         if isinstance(key, slice):
@@ -168,7 +167,7 @@ class BasePath(str):
                 frist = '{0}{1}'.format(self.fs.sep if self.is_abspath else '', interesting[0])
                 interesting[0] = frist
 
-        return Path(self.fs.sep.join(interesting))
+        return Klass(self.fs.sep.join(interesting))
 
     def __getslice__(self, *args):
         """
@@ -210,41 +209,6 @@ class BasePath(str):
         if re.search(regexp, self._value):
             return True
         return False
-
-    # !! this behaves differently to __contains__
-    def __iter__(self):
-        """
-        path objects iterate differently depending on context.
-
-        if we are a directory, we iterate through path objects
-        representing the contents of that directory.
-
-        if we represent a file, iteration returns one line at a time.
-
-        if we do not exist, we raise DoesNotExistError
-
-        return: generator(str or path)
-        exceptions: DoesNotExistError
-        """
-        if self.is_dir:
-
-            def dirgen():
-                "directory list generator"
-                for k in self.fs.ls(self._value):
-                    yield Path(k)
-            return dirgen()
-
-        elif self.is_file:
-            def filegen():
-                "file generator"
-                with self as fh:
-                    for line in fh:
-                        yield line
-
-            return filegen()
-
-        msg = 'the path {0} does not exist - not sure how to iterate'.format(self)
-        raise exceptions.DoesNotExistError(msg)
 
     def __add__(self, other):
         """
@@ -330,66 +294,6 @@ class BasePath(str):
         """
         return self + other
 
-    def __lshift__(self, contents):
-        """
-        we overload the << operator to allow us easy file writing according to the
-        following rules:
-
-        if we are a directory, raise TypeError.
-        if contents is not a stringtype, raise TypeError.
-
-        otherwise, treat self like a file and append contents to it.
-
-        note::
-
-            if components of the path leading to self do not exist,
-            they will be created. it is assumed that the user knows their
-            own mind.
-
-        arguments:
-        - `contents`: stringtype
-
-        return: None
-        exceptions: TypeError
-        """
-        if self.is_dir:
-            raise TypeError("you can't write to a directory larry... ")
-        if not isinstance(contents, six.string_types):
-            raise TypeError("you have to write with a stringtype larry... ")
-        with self.open('a') as fh:
-            fh.write(contents)
-        return
-
-    def __enter__(self):
-        """
-        contextmanager code - if the path is a file, this should behave like
-        with open(path) as foo:
-
-        if this is a directory, it should cd there and then return
-        """
-        if self.is_file:
-            self._file = self.fs.open(self._value)
-            return self._file
-        elif self.is_dir:
-            self._startdir = self.fs.getwd()
-            self.fs.cd(self)
-            return
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """
-        Contextmanager handling.
-        Exit from opening the path
-        """
-        if self.is_file:
-            try:
-                self._file.close()
-            finally:
-                self._file = None
-        elif self.is_dir:
-            self.fs.cd(self._startdir)
-            self._startdir = None
-        return
-
     @property
     def is_abspath(self):
         """
@@ -400,26 +304,6 @@ class BasePath(str):
         """
         # !!! Windoze?
         return self._value[0] == self.fs.sep
-
-    @property
-    def is_dir(self):
-        """
-        Predicate property to determine if this is an existng directory
-
-        Return: bool
-        Exceptions: None
-        """
-        return self.fs.is_branch(self._value)
-
-    @property
-    def is_file(self):
-        """
-        Predicate property to determine if this is an existng file
-
-        Return: bool
-        Exceptions: None
-        """
-        return self.fs.is_leaf(self._value)
 
     @property
     def _split(self):
@@ -463,6 +347,50 @@ class BasePath(str):
     # !!! ext
 
     # !!! Split - change default arg
+
+    def ls(self):
+        """
+        If we are a directory, return an iterable of the contents.
+
+        If we are a file, return the name.
+
+        If we don't exist, raise DoesNotExistError.
+
+        Return: iterable or string
+        Exceptions: DoesNotExistError
+        """
+        if self.is_file:
+            return self._value
+        elif self.is_dir:
+            return self.fs.ls(self)
+        msg = "Cannot access {0}: No such file or directory".format(self)
+        raise exceptions.DoesNotExistError(msg)
+
+    # !!! json_dump()
+    # !!! pickle_load()
+    # !!! pickle_dump()
+
+class LeafBranchPath(BasePath):
+
+    @property
+    def is_dir(self):
+        """
+        Predicate property to determine if this is an existng directory
+
+        Return: bool
+        Exceptions: None
+        """
+        return self.fs.is_branch(self._value)
+
+    @property
+    def is_file(self):
+        """
+        Predicate property to determine if this is an existng file
+
+        Return: bool
+        Exceptions: None
+        """
+        return self.fs.is_leaf(self._value)
 
     @contextlib.contextmanager
     def open(self, mode):
@@ -548,16 +476,6 @@ class BasePath(str):
         return
 
     @property
-    def size(self):
-        """
-        Return the size of SELF in bytes
-
-        Return: int
-        Exceptions: DoesNotExistError
-        """
-        return size(self)
-
-    @property
     def contents(self):
         """
         The contents of SELF.
@@ -575,6 +493,146 @@ class BasePath(str):
         msg = "{0} isn't a thing Larry - how can it have contents?"
         raise exceptions.DoesNotExistError(msg)
 
+    def json_load(self):
+        """
+        Treat SELF as a file containing JSON serialized data.
+        Load that data and return it.
+
+        If SELF is a directory or does not exist, raise TypeError
+
+        Return: object
+        Exceptions: TypeError
+        """
+        if not self:
+            raise TypeError("Can't load something that doesn't exist Larry... ")
+        if self.is_dir:
+            raise TypeError("Can't tread a directory as JSON Larry... ")
+        return json.loads(self.contents)
+
+
+
+class Path(LeafBranchPath):
+    """
+    Provide a pleasant API for working with file/directory paths.
+
+    If VALUE is None, then then initial value is the current working directory.
+    If VALUE is a string, take this to be a filesystem path of some description.
+    If VALUE is a list or tuple containing strings, take these as components of a
+      filesytem path.
+    If VALUE is a list or tuple containing non-strings, non-Paths, raise TypeError.
+
+    Arguments:
+    - `value`: str or list[str]
+
+    Return: None
+    Exceptions: TypeError
+    """
+
+    # !! this behaves differently to __contains__
+    def __iter__(self):
+        """
+        path objects iterate differently depending on context.
+
+        if we are a directory, we iterate through path objects
+        representing the contents of that directory.
+
+        if we represent a file, iteration returns one line at a time.
+
+        if we do not exist, we raise DoesNotExistError
+
+        return: generator(str or path)
+        exceptions: DoesNotExistError
+        """
+        if self.is_dir:
+
+            def dirgen():
+                "directory list generator"
+                for k in self.fs.ls(self._value):
+                    yield Path(k)
+            return dirgen()
+
+        elif self.is_file:
+            def filegen():
+                "file generator"
+                with self as fh:
+                    for line in fh:
+                        yield line
+
+            return filegen()
+
+        msg = 'the path {0} does not exist - not sure how to iterate'.format(self)
+        raise exceptions.DoesNotExistError(msg)
+
+    def __lshift__(self, contents):
+        """
+        we overload the << operator to allow us easy file writing according to the
+        following rules:
+
+        if we are a directory, raise TypeError.
+        if contents is not a stringtype, raise TypeError.
+
+        otherwise, treat self like a file and append contents to it.
+
+        note::
+
+            if components of the path leading to self do not exist,
+            they will be created. it is assumed that the user knows their
+            own mind.
+
+        arguments:
+        - `contents`: stringtype
+
+        return: None
+        exceptions: TypeError
+        """
+        if self.is_dir:
+            raise TypeError("you can't write to a directory larry... ")
+        if not isinstance(contents, six.string_types):
+            raise TypeError("you have to write with a stringtype larry... ")
+        with self.open('a') as fh:
+            fh.write(contents)
+        return
+
+    def __enter__(self):
+        """
+        contextmanager code - if the path is a file, this should behave like
+        with open(path) as foo:
+
+        if this is a directory, it should cd there and then return
+        """
+        if self.is_file:
+            self._file = self.fs.open(self._value)
+            return self._file
+        elif self.is_dir:
+            self._startdir = self.fs.getwd()
+            self.fs.cd(self)
+            return
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Contextmanager handling.
+        Exit from opening the path
+        """
+        if self.is_file:
+            try:
+                self._file.close()
+            finally:
+                self._file = None
+        elif self.is_dir:
+            self.fs.cd(self._startdir)
+            self._startdir = None
+        return
+
+    @property
+    def size(self):
+        """
+        Return the size of SELF in bytes
+
+        Return: int
+        Exceptions: DoesNotExistError
+        """
+        return size(self)
+
     @classmethod
     @contextlib.contextmanager
     def temp(klass):
@@ -591,24 +649,6 @@ class BasePath(str):
             yield klass(tmpath)
         finally:
             fs.rm(tmpath, recursive=True)
-
-    def ls(self):
-        """
-        If we are a directory, return an iterable of the contents.
-
-        If we are a file, return the name.
-
-        If we don't exist, raise DoesNotExistError.
-
-        Return: iterable or string
-        Exceptions: DoesNotExistError
-        """
-        if self.is_file:
-            return self._value
-        elif self.is_dir:
-            return self.fs.ls(self)
-        msg = "Cannot access {0}: No such file or directory".format(self)
-        raise exceptions.DoesNotExistError(msg)
 
     def touch(self, *args):
         """
@@ -702,42 +742,3 @@ class BasePath(str):
             raise exceptions.DoesNotExistError("Can't move nothing Larry... ")
         self.fs.mv(self, target)
         return Path(target)
-
-    def json_load(self):
-        """
-        Treat SELF as a file containing JSON serialized data.
-        Load that data and return it.
-
-        If SELF is a directory or does not exist, raise TypeError
-
-        Return: object
-        Exceptions: TypeError
-        """
-        if not self:
-            raise TypeError("Can't load something that doesn't exist Larry... ")
-        if self.is_dir:
-            raise TypeError("Can't tread a directory as JSON Larry... ")
-        return json.loads(self.contents)
-
-    # !!! json_dump()
-    # !!! pickle_load()
-    # !!! pickle_dump()
-
-
-
-class Path(BasePath):
-    """
-    Provide a pleasant API for working with file/directory paths.
-
-    If VALUE is None, then then initial value is the current working directory.
-    If VALUE is a string, take this to be a filesystem path of some description.
-    If VALUE is a list or tuple containing strings, take these as components of a
-      filesytem path.
-    If VALUE is a list or tuple containing non-strings, non-Paths, raise TypeError.
-
-    Arguments:
-    - `value`: str or list[str]
-
-    Return: None
-    Exceptions: TypeError
-    """

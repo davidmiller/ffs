@@ -193,4 +193,5 @@ class HTTPPath(ffs.path.BasePath):
     An implementation of the ffs path manupulation interface for
     HTTP resources.
     """
+    fsflavour = HTTPFilesystem
 

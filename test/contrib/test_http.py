@@ -123,6 +123,36 @@ class HttpFilesystemTestCase(unittest.TestCase):
     # def test_stat(self):
     #     "Header info"
 
+class HTTPPathTestCase(unittest.TestCase):
+
+    # Should just iterate through the lines of the content
+    def test_iter(self):
+        ""
+        pass
+
+    # Test initialize with another HTTPPath
+    # Test equality with another HttpPath and Str
+
+    def test_getitem_klass(self):
+        "Should be a Path"
+        p = http.HTTPPath('localhost:8000/foo/bar')
+        self.assertIsInstance(p[:1], http.HTTPPath)
+        self.assertIsInstance(p[0], http.HTTPPath)
+
+    #  test getitem protocol
+    # Test setitem raises
+    # Test add returninstance
+    # test iadd returninstance
+    # test radd returninstance
+    # Contextmanager implementation
+    # abspath returninstance
+    # Parent returninstance
+    # size
+    # contents
+    # json_load
+
+
+
 if __name__ == '__main__':
     unittest.main()
 
