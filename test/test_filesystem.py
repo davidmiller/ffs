@@ -13,7 +13,7 @@ from mock import MagicMock, patch
 
 if sys.version_info < (2, 7): import unittest2 as unittest
 
-from ffs import filesystem, nix
+from ffs import exceptions, filesystem, nix
 
 class BaseFilesystemTestCase(unittest.TestCase):
     def setUp(self):
@@ -122,6 +122,51 @@ class BaseFilesystemTestCase(unittest.TestCase):
     def test_tempdir(self):
         "Tempdir raises"
         with self.assertRaises(NotImplementedError):
+            self.fs.tempdir()
+
+
+class ReadOnlyFilesystemTestCase(unittest.TestCase):
+    def setUp(self):
+        self.fs = filesystem.ReadOnlyFilesystem()
+
+    def test_mkdir(self):
+        "Mkdir raises"
+        with self.assertRaises(exceptions.InappropriateError):
+            self.fs.mkdir(None)
+
+    def test_cp(self):
+        "Cp raises"
+        with self.assertRaises(exceptions.InappropriateError):
+            self.fs.cp(None, None)
+
+    def test_ln(self):
+        "Ln raises"
+        with self.assertRaises(exceptions.InappropriateError):
+            self.fs.ln(None, None)
+
+    def test_mv(self):
+        "Mv raises"
+        with self.assertRaises(exceptions.InappropriateError):
+            self.fs.mv(None, None)
+
+    def test_rm(self):
+        "Rm raises"
+        with self.assertRaises(exceptions.InappropriateError):
+            self.fs.rm(None)
+
+    def test_touch(self):
+        "Touch raises"
+        with self.assertRaises(exceptions.InappropriateError):
+            self.fs.touch(None)
+
+    def test_tempfile(self):
+        "Tempfile raises"
+        with self.assertRaises(exceptions.InappropriateError):
+            self.fs.tempfile()
+
+    def test_tempdir(self):
+        "Tempdir raises"
+        with self.assertRaises(exceptions.InappropriateError):
             self.fs.tempdir()
 
 

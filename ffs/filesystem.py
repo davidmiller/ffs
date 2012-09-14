@@ -9,7 +9,7 @@ from __future__ import with_statement
 import os
 import tempfile
 
-from ffs import nix, util
+from ffs import exceptions, nix, util
 from ffs.util import wraps
 
 class BaseFilesystem(object):
@@ -294,6 +294,39 @@ class BaseFilesystem(object):
         raise NotImplementedError("!")
 
 
+class ReadOnlyFilesystem(BaseFilesystem):
+    """
+    A filesystem that only allows us read access to it's contents.
+
+    We explicitly stop raising NotImplementedError so that subclasses won't
+    have to. Instead, we raise InappropriateError. Pedantic, but more semantic.
+    """
+
+    def mkdir(self, resource):
+        raise exceptions.InappropriateError("Can't mkdir() on a Read-only filesystem")
+
+    def cp(self, resource, target):
+        raise exceptions.InappropriateError("Can't cp() on a Read-only filesystem")
+
+    def ln(self, resource, target):
+        raise exceptions.InappropriateError("Can't ln() on a Read-only filesystem")
+
+    def mv(self, resource, target):
+        raise exceptions.InappropriateError("Can't mv() on a Read-only filesystem")
+
+    def rm(self, resource):
+        raise exceptions.InappropriateError("Can't rm() on a Read-only filesystem")
+
+    def touch(self, resource):
+        raise exceptions.InappropriateError("Can't touch() on a Read-only filesystem")
+
+    def tempfile(self):
+        raise exceptions.InappropriateError("Can't tempfile() on a Read-only filesystem")
+
+    def tempdir(self):
+        raise exceptions.InappropriateError("Can't tempdir() on a Read-only filesystem")
+
+
 class DiskFilesystem(BaseFilesystem):
     """
     Disk based filesystem. Abstraction across implementations
@@ -304,7 +337,6 @@ class DiskFilesystem(BaseFilesystem):
     @wraps(BaseFilesystem.sep)
     def sep(self):
         return os.sep
-
 
     @wraps(BaseFilesystem.exists)
     def exists(self, resource):
