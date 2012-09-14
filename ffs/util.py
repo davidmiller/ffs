@@ -10,6 +10,8 @@ import re
 import urlparse
 from _functools import partial
 
+from six.moves import StringIO
+
 def _defensive_dperms(filename):
     """
     Check that the permissions of `filename`'s directory are sane
@@ -99,6 +101,15 @@ def size(filepath):
     if not _defensive_access(filepath):
         return None
     return int(os.stat(filename).st_size)
+
+class Flike(StringIO):
+    "String IO that understands the Contextmanager protocol"
+    def __enter__(self):
+        return self
+
+    def __exit__(self, msg, val, tb):
+        return
+
 
 #
 # We backport the 3.3 implementation of functools.wraps

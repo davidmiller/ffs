@@ -74,12 +74,24 @@ class HttpFilesystemTestCase(unittest.TestCase):
 
     def test_open(self):
         "Should Open"
+        with patch('requests.get') as pget:
+            pget.return_value.content = 'Hai'
+            with self.fs.open('http://bbc.co.uk') as fh:
+                self.assertEqual('Hai', fh.read())
+                pget.assert_called_with('http://bbc.co.uk')
+            fh = self.fs.open('http://asofterworld.com')
+            self.assertEqual('Hai', fh.read())
+            pget.assert_called_with('http://asofterworld.com')
 
     def test_is_branch(self):
         "Is This a branch?"
+        with self.assertRaises(exceptions.InappropriateError):
+            self.fs.is_branch(None)
 
     def test_is_leaf(self):
         "Is this a leaf?"
+        with self.assertRaises(exceptions.InappropriateError):
+            self.fs.is_leaf(None)
 
     def test_expanduser(self):
         "Should raise"
@@ -100,9 +112,16 @@ class HttpFilesystemTestCase(unittest.TestCase):
 
     def test_parent(self):
         "Get the parent"
+        cases = [
+            ('http://www.bbc.co.uk/sport/0/cricket/', 'http://www.bbc.co.uk/sport/0'),
+            ('http://www.bbc.co.uk/sport/0/cricket', 'http://www.bbc.co.uk/sport/0')
+            ]
+        for case, expected in cases:
+            self.assertEqual(expected, self.fs.parent(case))
 
-    def test_stat(self):
-        "Header info"
+    # !!! Implement this
+    # def test_stat(self):
+    #     "Header info"
 
 if __name__ == '__main__':
     unittest.main()

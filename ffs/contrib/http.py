@@ -7,12 +7,14 @@ An HTTPath implementation on top of ffs.Path.
 # !!! We should do some further thinking around what constitutes
 # an absolute path for http
 #
+import os
 import urlparse
 
 import requests
 import urlhelp
 
 import ffs
+from ffs.util import Flike, wraps
 
 class HTTPFilesystem(ffs.filesystem.ReadOnlyFilesystem):
     """
@@ -142,6 +144,48 @@ class HTTPFilesystem(ffs.filesystem.ReadOnlyFilesystem):
         """
         return urlhelp.protocolise(resource)
 
+    def open(self, resource):
+        """
+        Return a file-like object that represents the contents of
+        a HTTP resource
+
+        Arguments:
+        - `resource`: str or Path
+
+        Return: File-Like object
+        Exceptions: None
+        """
+        resp = requests.get(resource)
+        flike = Flike(resp.content)
+        return flike
+
+    @wraps(ffs.filesystem.BaseFilesystem.parent)
+    def parent(self, resource):
+        return os.path.dirname(resource.rstrip(self.sep))
+
+    def is_branch(self, resource):
+        """
+        For HTTP, we have no canonical way to determine whether RESOURCE
+        is a branch or a leaf, so we raise InappropriateError.
+
+        Arguments:
+        - `resource`: str or Path
+
+        Exceptions: InappropriateError
+        """
+        raise ffs.exceptions.InappropriateError("Can't tell if this is a branch Larry... ")
+
+    def is_leaf(self, resource):
+        """
+        For HTTP, we have no canonical way to determine whether RESOURCE
+        is a leaf or a leaf, so we raise InappropriateError.
+
+        Arguments:
+        - `resource`: str or Path
+
+        Exceptions: InappropriateError
+        """
+        raise ffs.exceptions.InappropriateError("Can't tell if this is a leaf Larry... ")
 
 
 class HTTPPath(ffs.path.BasePath):
