@@ -267,9 +267,15 @@ def mkdir(*paths,**kw):
     Return: None
     Exceptions: None
     """
-    fn = 'parents' in kw and mkdir_p or os.mkdir
+    fn = 'parents' in kw and kw['parents'] and mkdir_p or os.mkdir
     for path in paths:
-        fn(str(path))
+        try:
+            fn(str(path))
+        except OSError as err:
+            if err.errno == 2:
+                msg = 'Target {0} lacked some parents'.format(path)
+                raise exceptions.BadParentingError(msg)
+            raise
     return
 
 def mkdir_p(path):

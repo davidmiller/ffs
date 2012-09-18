@@ -375,6 +375,12 @@ class MkdirTestCase(unittest.TestCase):
         nix.mkdir(p, parents=True)
         self.assertTrue(os.path.exists(self.nodir))
 
+    def test_mkdir_parents_false(self):
+        "Should raise"
+        self.assertFalse(os.path.exists(self.nodir))
+        p = Path(self.nodir) + 'child/leaves'
+        with self.assertRaises(exceptions.BadParentingError):
+            nix.mkdir(p, parents=False)
 
 class MkdirPTestCase(unittest.TestCase):
     def setUp(self):
