@@ -20,3 +20,6 @@ class NonsenseError(Error):
 
 class NotRaisedError(Error):
     "There is never a good time to raise this"
+
+class BadParentingError(Error):
+    "We expected the parents to be there, but no, just a dangling child."

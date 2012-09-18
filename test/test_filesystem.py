@@ -243,9 +243,13 @@ class DiskFilesystemTestCase(unittest.TestCase):
         "Openit."
         with patch('ffs.filesystem.open', create=True) as po:
             po.return_value = 'filelike'
-            fh = self.fs.open(self.tfile, 'wb')
-            self.assertEqual('filelike', fh)
-            po.assert_called_with(self.tfile, 'wb')
+            with patch.object(self.fs, 'expanduser') as pe:
+                pe.side_effect = lambda x: x
+                fh = self.fs.open(self.tfile, 'wb')
+                self.assertEqual('filelike', fh)
+                po.assert_called_with(self.tfile, 'wb')
+                pe.assert_called_with(self.tfile)
+
 
     def test_expanduser(self):
         "Expand ~"

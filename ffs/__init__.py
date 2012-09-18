@@ -9,7 +9,7 @@ import errno
 import os
 import sys
 
-from ffs import exceptions, nixargs
+from ffs import exceptions, formats, nixargs
 from ffs.util import is_dir, is_file, hsize, size
 from ffs.nix import (cd, chmod, chown, cmp,
                      cp, cp_r,
@@ -34,6 +34,7 @@ else:
 __all__ = [
     # Modules
     'exceptions',
+    'formats',
     'nixargs',
     # Nix helpers
     'cd',
