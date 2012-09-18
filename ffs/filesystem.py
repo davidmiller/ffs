@@ -340,7 +340,7 @@ class DiskFilesystem(BaseFilesystem):
 
     @wraps(BaseFilesystem.open)
     def open(self, resource, mode='r'):
-        return open(resource, mode)
+        return open(self.expanduser(resource), mode)
 
     @wraps(BaseFilesystem.expanduser)
     def expanduser(self, resource):
@@ -379,7 +379,6 @@ class DiskFilesystem(BaseFilesystem):
     @wraps(BaseFilesystem.tempdir)
     def tempdir(self):
         tdir = tempfile.mkdtemp()
-        self.mkdir(tdir)
         return tdir
 
     @wraps(BaseFilesystem.rm)
