@@ -568,6 +568,13 @@ class NixMethodsTestCase(PathTestCase):
         self.assertTrue(os.path.isdir(self.tdir + '/one'))
         self.assertTrue(os.path.isdir(self.tdir + '/two'))
 
+    def test_mkdir_parents(self):
+        "Make the parents as well"
+        p = Path(self.tdir)
+        self.assertFalse(os.path.isdir(self.tdir + '/somedir/one'))
+        p.mkdir('somedir/one/two')
+        self.assertTrue(os.path.isdir(self.tdir + '/somedir/one'))
+
     def test_cp_file(self):
         "Copy self to dest"
         p = Path(self.tdir) + 'some.txt'
@@ -640,6 +647,18 @@ class JsonishTestCase(unittest.TestCase):
         for case in cases:
             with self.assertRaises(TypeError):
                 case.json_load()
+
+class CsvIshTestCase(PathTestCase):
+
+    def test_as_csv(self):
+        "Csv contextmanager"
+        p = Path(self.tmpath)
+        p << '1,2,3,4'
+        with p.csv() as csv:
+            for i, row in enumerate(csv):
+                self.assertEqual(0, i)
+                self.assertEqual('1 2 3 4'.split(), row)
+
 
 
 if __name__ == '__main__':

@@ -17,7 +17,7 @@ import types
 
 import six
 
-from ffs import exceptions, filesystem, nix, is_dir, is_file, size, _path_blacklists
+from ffs import exceptions, filesystem, formats, nix, is_dir, is_file, size, _path_blacklists
 
 def _stringcoll(coll):
     """
@@ -645,6 +645,7 @@ class BasePath(str):
         Equivalent to calling the *nix command on SELF.
 
         Creates a directory if one does not exist, otherwise, a no-op.
+        Implicitly creates parents if required.
 
         If self is a file, raise TypeError
 
@@ -653,6 +654,7 @@ class BasePath(str):
 
         Arguments:
         - `*ARGS`: str
+        - `parents`: bool
 
         Return: None
         Exceptions: TypeError
@@ -660,10 +662,10 @@ class BasePath(str):
         if self.is_file:
             raise TypeError("Can't mkdir() a file.")
         if not args:
-            self.fs.mkdir(self)
+            self.fs.mkdir(self, parents=True)
         else:
             for arg in args:
-                self.fs.mkdir(self + arg)
+                self.fs.mkdir(self + arg, parents=True)
         return
 
     def cp(self, target):
@@ -718,6 +720,22 @@ class BasePath(str):
         if self.is_dir:
             raise TypeError("Can't tread a directory as JSON Larry... ")
         return json.loads(self.contents)
+
+    @contextlib.contextmanager
+    def csv(self, delimiter=','):
+        """
+        Contextmanager to use SELF as a csv.Reader object
+
+        Use DELIMITER as the csv's delimiter
+
+        Arguments:
+        - `delimiter`: str
+
+        Return: csv.Reader
+        Exceptions: None
+        """
+        with formats.CSV(self, delimiter=delimiter) as csv:
+            yield csv
 
     # !!! json_dump()
     # !!! pickle_load()
