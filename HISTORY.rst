@@ -7,6 +7,11 @@ History
 Add a mv() method to Path.
 Re-enable rstrip(). (Stdlib uses it e.g. shutil._basename)
 Catch the case where we call Path(Path('foo')) and get recursion errors.
+Add the formats module for helpers with Fileformats.
+Frist entry is the Indeterminate CSV class (ducktypes as both a reader and writer until
+you do something deterministic)x
+Add a csv contextmanager to Path
+DiskFilesystem.open() implicitly calls expanduser
 
 0.0.4.1 (Sep 12 2012)
 +++++++++++++++++++++
