@@ -36,7 +36,7 @@ class CSVTestCase(unittest.TestCase):
             iterable = acsv._resolve_reader()
             self.assertIsInstance(acsv.resolved, ReaderType)
             self.assertIsInstance(acsv.fh, file)
-            self.assertEqual('rb', acsv.fh.mode)
+            self.assertEqual('rU', acsv.fh.mode)
 
     def test_reader_delimiter(self):
         "Should pass through"

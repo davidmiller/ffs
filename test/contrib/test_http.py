@@ -183,10 +183,27 @@ class HTTPPathTestCase(unittest.TestCase):
             with p as fh:
                 self.assertEqual({'haps': 'bar'}, fh.headers)
 
-    #  test getitem protocol
-    # Test add returninstance
-    # test iadd returninstance
-    # test radd returninstance
+    def test_add(self):
+        "Should be Pathy"
+        p = http.HTTPPath('qwantz.com')
+        p2 = p + 'comix'
+        self.assertIsInstance(p2, http.HTTPPath)
+        self.assertEqual('qwantz.com/comix', p2)
+
+    def test_iadd_return(self):
+        "Should be pathy"
+        p = http.HTTPPath('www.qwantz.com')
+        p += 'comix'
+        self.assertIsInstance(p, http.HTTPPath)
+        self.assertEqual('www.qwantz.com/comix', p)
+
+    def test_radd_return(self):
+        "Should be pathy"
+        p = 'www.qwantz.com'
+        p2 = p + http.HTTPPath('comix')
+        self.assertIsInstance(p2, http.HTTPPath)
+        self.assertEqual('www.qwantz.com/comix', p2)
+
     # Contextmanager implementation
     # abspath returninstance
     # Parent returninstance

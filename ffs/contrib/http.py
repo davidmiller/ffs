@@ -248,3 +248,16 @@ class HTTPPath(ffs.path.BasePath):
 
         return httpgen()
 
+    # !!! With both this and other addition, figure out a
+    # way to do subdomains
+    def __iadd__(self, other):
+        """
+        Implement SELF += str or Path
+
+        Arguments:
+        - `other`: str or Path
+
+        Return: HTTPPath
+        Exceptions: TypeError
+        """
+        return ffs.path.BasePath.__iadd__(self, other)

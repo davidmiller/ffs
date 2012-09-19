@@ -227,11 +227,12 @@ class BasePath(str):
         return: path
         exceptions: TypeError
         """
+        klass = self.__class__
         # path()s and strings are simple
         if isinstance(other, Path):
             return self + other._value
         if isinstance(other, six.string_types):
-            return Path(self.fs.sep.join([self._value, other]))
+            return klass(self.fs.sep.join([self._value, other]))
 
         # collections must be typechecked. weak runtime type safety, yes, i know.
         if isinstance(other, (list, tuple)):
@@ -250,12 +251,13 @@ class BasePath(str):
 
         we want to include the path separator
         """
+        Klass = self.__class__
         if not isinstance(other, six.string_types):
             raise TypeError
         # !!! what should we do on windoze?
         if other[0] == self.fs.sep:
-            return Path('{0}{1}'.format(self, other))
-        return Path('{0}{1}{2}'.format(self, self.fs.sep, other))
+            return Klass('{0}{1}'.format(self, other))
+        return Klass('{0}{1}{2}'.format(self, self.fs.sep, other))
 
     # !!! deal with different path.sep
     def __radd__(self, other):
@@ -264,6 +266,7 @@ class BasePath(str):
 
         we want to include the path separator
         """
+        Klass = self.__class__
         if not isinstance(other, six.string_types):
             raise TypeError
         # !!! what should this do on windoze?
@@ -272,7 +275,7 @@ class BasePath(str):
         else:
             frist = ''
         branches = [b for b in other.split(self.fs.sep) + self._split if b]
-        return Path('{0}{1}'.format(frist, self.fs.sep.join(branches)))
+        return Klass('{0}{1}'.format(frist, self.fs.sep.join(branches)))
 
     def __div__(self, other):
         """
