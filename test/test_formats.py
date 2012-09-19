@@ -84,6 +84,26 @@ class CSVTestCase(unittest.TestCase):
             with self.assertRaises(TypeError):
                 acsv.__iter__()
 
+    def test_next(self):
+        "Next on the generator-like reader"
+        with self.tcsv.csv() as acsv:
+            self.assertEqual(acsv.next(), '1 2 3 4'.split())
+
+    def test_next_resolves(self):
+        "Nextating should make us a reader"
+        with self.tcsv.csv() as acsv:
+            with patch.object(acsv, '_resolve_reader') as pres:
+                pres.side_effect = lambda: setattr(acsv, 'resolved', MagicMock())
+                nxt = acsv.next()
+                pres.assert_called_with()
+
+    def test_next_raises(self):
+        "If we've resolved to a wrnext, raise"
+        with self.tcsv.csv() as acsv:
+            acsv._resolve_writer()
+            with self.assertRaises(AttributeError):
+                acsv.next()
+
     def test_line_num_resolves(self):
         "Line num should resolve"
         with self.tcsv.csv() as acsv:

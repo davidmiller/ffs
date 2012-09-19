@@ -17,6 +17,7 @@ class CSV(object):
     If you try to iterate through it, the CSV collapses into a reader.
     If you try to writerow() it, the CSV collapses into a writer.
     """
+    # !!! add strip= True
     def __init__(self, path, delimiter=','):
         self.path = path
         self.delimiter = delimiter
@@ -53,7 +54,7 @@ class CSV(object):
         Return: None
         Exceptions: None
         """
-        self.fh = self.path.fs.open(self.path, 'rb')
+        self.fh = self.path.fs.open(self.path, 'rU')
         self.resolved = csv.reader(self.fh, delimiter=self.delimiter)
 
     def _resolve_writer(self):
@@ -103,6 +104,23 @@ class CSV(object):
             raise AttributeError('CSV Writer object has no attribute line_num')
 
         return self.resolved.line_num
+
+    def next(self):
+        """
+        If we're unresolved, resolve to a reader then, pass through.
+        If we're resolved to a reader, pass through.
+        If we're resolved to a writer, raise AttributeError
+
+        Return: list[str]
+        Exceptions: AttributeError
+        """
+        if not self.resolved:
+            self._resolve_reader()
+
+        if isinstance(self.resolved, WriterType):
+            raise AttributeError('CSV Writer object has no attribute next')
+
+        return self.resolved.next()
 
     def writerow(self, row):
         """
