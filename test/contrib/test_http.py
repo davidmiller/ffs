@@ -5,11 +5,21 @@ import sys
 import unittest
 
 from mock import MagicMock, patch
+from six.moves import StringIO
 
 if sys.version_info <  (2, 7): import unittest2 as unittest
 
 from ffs import exceptions
 from ffs.contrib import http
+
+class HTTPFlikeTestCase(unittest.TestCase):
+
+    def test_headers(self):
+        "expose headers"
+        hf = http.HTTPFlike('HAI', headers={'content-length': '146'})
+        self.assertEqual({'content-length': '146'}, hf.headers)
+        self.assertEqual('HAI', hf.read())
+
 
 class HttpFilesystemTestCase(unittest.TestCase):
     def setUp(self):
@@ -125,13 +135,32 @@ class HttpFilesystemTestCase(unittest.TestCase):
 
 class HTTPPathTestCase(unittest.TestCase):
 
-    # Should just iterate through the lines of the content
-    def test_iter(self):
-        ""
-        pass
+    def test_init_httppath(self):
+        "Deal with initializing with a HTTPPath"
+        p1 = http.HTTPPath('www.bbc.co.uk')
+        p2 = http.HTTPPath(p1)
+        self.assertIsInstance(p2._value, str)
+        self.assertEqual('www.bbc.co.uk', p2)
 
-    # Test initialize with another HTTPPath
-    # Test equality with another HttpPath and Str
+    def test_contextmanager(self):
+        "Filelike object as a contextmanager"
+        with patch('ffs.contrib.http.HTTPFilesystem.open') as popen:
+            popen.return_value = StringIO("Hai\n")
+            with http.HTTPPath('example.com') as hh:
+                self.assertEqual('Hai\n', hh.read())
+
+    def test_iter(self):
+        "Iterate through lines of body content"
+        with patch('ffs.contrib.http.HTTPFilesystem.open') as popen:
+            popen.return_value = StringIO("<html>\nHai\n<html>")
+            expected = ['<html>\n', 'Hai\n', '<html>']
+            for i, line in enumerate(http.HTTPPath('example.com')):
+                self.assertEqual(expected[i], line)
+
+    def test_eq(self):
+        "Should be equal to strings"
+        p = http.HTTPPath('www.bbc.co.uk/weather')
+        self.assertEqual('www.bbc.co.uk/weather', p)
 
     def test_getitem_klass(self):
         "Should be a Path"
@@ -139,8 +168,22 @@ class HTTPPathTestCase(unittest.TestCase):
         self.assertIsInstance(p[:1], http.HTTPPath)
         self.assertIsInstance(p[0], http.HTTPPath)
 
+    def test_setitem_raises(self):
+        "Should be an immutable collection"
+        p = http.HTTPPath('qwantz.com')
+        with self.assertRaises(TypeError):
+            p[-1] = 'dinosaurcomics.com'
+
+    def test_open_headers(self):
+        "Should have access to the headers"
+        with patch('requests.get') as pget:
+            pget.return_value.content = 'Hai\n'
+            pget.return_value.headers = dict(haps='bar')
+            p = http.HTTPPath('qwantz.com')
+            with p as fh:
+                self.assertEqual({'haps': 'bar'}, fh.headers)
+
     #  test getitem protocol
-    # Test setitem raises
     # Test add returninstance
     # test iadd returninstance
     # test radd returninstance

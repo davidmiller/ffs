@@ -16,6 +16,20 @@ import urlhelp
 import ffs
 from ffs.util import Flike, wraps
 
+class HTTPFlike(Flike):
+    """
+    A file-like object with a .headers attribute
+    """
+    def __init__(self, *args, **kw):
+        if 'headers'in kw:
+            headers = kw['headers']
+            del kw['headers']
+        else:
+            headers = {}
+        self.headers = headers
+        Flike.__init__(self, *args, **kw)
+
+
 class HTTPFilesystem(ffs.filesystem.ReadOnlyFilesystem):
     """
     An implementation of the ffs filesystem inteface for HTTP.
@@ -156,7 +170,7 @@ class HTTPFilesystem(ffs.filesystem.ReadOnlyFilesystem):
         Exceptions: None
         """
         resp = requests.get(resource)
-        flike = Flike(resp.content)
+        flike = HTTPFlike(resp.content, headers=resp.headers)
         return flike
 
     @wraps(ffs.filesystem.BaseFilesystem.parent)
@@ -194,4 +208,43 @@ class HTTPPath(ffs.path.BasePath):
     HTTP resources.
     """
     fsflavour = HTTPFilesystem
+
+    def __init__(self, *args, **kw):
+        self._flike = None
+        ffs.path.BasePath.__init__(self, *args, **kw)
+
+    def __enter__(self):
+        """
+        Duck-type a HTTP request like a File.
+        Fetch the content, and return it as a File-like-object
+
+        Return: Flike
+        Exceptions: None
+        """
+        self._flike = self.fs.open(self)
+        return self._flike
+
+    def __exit__(self, msg, err, tb):
+        """
+        Clean up the Flike
+        """
+        try:
+            self._flike.close()
+        finally:
+            self._flike = None
+
+    def __iter__(self):
+        """
+        Iterate through the lines in the HTTP response content
+
+        Return: iterable
+        Exceptions: None
+        """
+        def httpgen():
+            "HTTP Generator"
+            with self as fh:
+                for line in fh:
+                    yield line
+
+        return httpgen()
 

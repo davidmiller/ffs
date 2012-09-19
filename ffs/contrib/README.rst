@@ -10,3 +10,4 @@ ZookeeperPath (contrib-zk)
 HadoopFSPath
 SFTPPath
 FTPPath
+ZipPath
