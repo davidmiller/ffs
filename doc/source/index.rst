@@ -30,7 +30,9 @@ API Docs
     modules/path
     modules/nix
     modules/filesystem
+    modules/formats
     modules/util
+    modules/contrib/http
 
 
 
