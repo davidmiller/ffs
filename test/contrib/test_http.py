@@ -93,6 +93,13 @@ class HttpFilesystemTestCase(unittest.TestCase):
             self.assertEqual('Hai', fh.read())
             pget.assert_called_with('http://asofterworld.com')
 
+    # def test_open_protocolises(self):
+    #     "should protocolise"
+    #     with patch('requests.get') as pget:
+    #         with patch('urlhelp.protocolise') as pproto:
+    #             self.fs.open('localhost:8000')
+    #             pproto.assert_called_once_with('localhost:8000')
+
     def test_is_branch(self):
         "Is This a branch?"
         with self.assertRaises(exceptions.InappropriateError):
@@ -156,6 +163,15 @@ class HTTPPathTestCase(unittest.TestCase):
             expected = ['<html>\n', 'Hai\n', '<html>']
             for i, line in enumerate(http.HTTPPath('example.com')):
                 self.assertEqual(expected[i], line)
+
+    def test_contains_questionmark(self):
+        "Shouldn't blow up"
+        cases = [
+            ('localhost:8000',            False),
+            ('localhost:8000/?haps=true', True)
+            ]
+        for url, expected in cases:
+            self.assertEqual(expected, http.HTTPPath(url).__contains__('?'))
 
     def test_eq(self):
         "Should be equal to strings"

@@ -169,7 +169,7 @@ class HTTPFilesystem(ffs.filesystem.ReadOnlyFilesystem):
         Return: File-Like object
         Exceptions: None
         """
-        resp = requests.get(resource)
+        resp = requests.get(urlhelp.protocolise(resource))
         flike = HTTPFlike(resp.content, headers=resp.headers)
         return flike
 

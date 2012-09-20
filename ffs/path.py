@@ -202,6 +202,8 @@ class BasePath(str):
         return: bool
         exceptions: None
         """
+        if item == '?':
+            return item in self._value
         if item[0] == self.fs.sep:
             regexp = r'^{0}'.format(item)
         else:
