@@ -6,6 +6,7 @@ import unittest
 
 from mock import MagicMock, patch
 from six.moves import StringIO
+from lxml import html
 
 if sys.version_info <  (2, 7): import unittest2 as unittest
 
@@ -14,12 +15,30 @@ from ffs.contrib import http
 
 class HTTPFlikeTestCase(unittest.TestCase):
 
+    def test_url(self):
+        "Should store the url or none."
+        hf = http.HTTPFlike('HAI', url='http://example.com/hai')
+        self.assertEqual('http://example.com/hai', hf.url)
+        hf = http.HTTPFlike('HAI')
+        self.assertEqual(None, hf.url)
+
     def test_headers(self):
         "expose headers"
         hf = http.HTTPFlike('HAI', headers={'content-length': '146'})
         self.assertEqual({'content-length': '146'}, hf.headers)
         self.assertEqual('HAI', hf.read())
 
+    def test_dom(self):
+        "Expose lxml root"
+        hf = http.HTTPFlike('<h2>Hai<h2>')
+        self.assertTrue(hf.dom is not None)
+        self.assertIsInstance(hf.dom, html.HtmlElement)
+
+    def test_ls(self):
+        "Should list links in self"
+        hf = http.HTTPFlike('<a href="/weather">weather</a>', url='http://bbc.co.uk')
+        self.assertTrue(hf.url is not None)
+        self.assertEqual(['http://bbc.co.uk/weather'], hf.ls())
 
 class HttpFilesystemTestCase(unittest.TestCase):
     def setUp(self):
@@ -91,14 +110,8 @@ class HttpFilesystemTestCase(unittest.TestCase):
                 pget.assert_called_with('http://bbc.co.uk')
             fh = self.fs.open('http://asofterworld.com')
             self.assertEqual('Hai', fh.read())
+            self.assertEqual('http://asofterworld.com', fh.url)
             pget.assert_called_with('http://asofterworld.com')
-
-    # def test_open_protocolises(self):
-    #     "should protocolise"
-    #     with patch('requests.get') as pget:
-    #         with patch('urlhelp.protocolise') as pproto:
-    #             self.fs.open('localhost:8000')
-    #             pproto.assert_called_once_with('localhost:8000')
 
     def test_is_branch(self):
         "Is This a branch?"

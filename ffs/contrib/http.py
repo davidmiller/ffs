@@ -10,6 +10,7 @@ An HTTPath implementation on top of ffs.Path.
 import os
 import urlparse
 
+from lxml import html
 import requests
 import urlhelp
 
@@ -21,13 +22,31 @@ class HTTPFlike(Flike):
     A file-like object with a .headers attribute
     """
     def __init__(self, *args, **kw):
-        if 'headers'in kw:
-            headers = kw['headers']
-            del kw['headers']
-        else:
-            headers = {}
-        self.headers = headers
+        popkw = [
+            ('headers', {}),
+            ('url', None)
+            ]
+        for word, default in popkw:
+            if word in kw:
+                setattr(self, word, kw[word])
+                del kw[word]
+            else:
+                setattr(self, word, default)
+        self.dom = html.fromstring(args[0])
         Flike.__init__(self, *args, **kw)
+
+    def ls(self):
+        """
+        Return a list of links in this HTML document.
+
+        Return: list[str]
+        Exceptions: None
+        """
+        atags = self.dom.cssselect('a')
+        hrefs = [a.attrib['href'] for a in atags]
+        hrefs = [h[1:] if h[0] == '/' else h for h in hrefs]
+        hrefs = [h if h.startswith('http') else '/'.join([self.url, h]) for h in hrefs ]
+        return hrefs
 
 
 class HTTPFilesystem(ffs.filesystem.ReadOnlyFilesystem):
@@ -169,8 +188,9 @@ class HTTPFilesystem(ffs.filesystem.ReadOnlyFilesystem):
         Return: File-Like object
         Exceptions: None
         """
-        resp = requests.get(urlhelp.protocolise(resource))
-        flike = HTTPFlike(resp.content, headers=resp.headers)
+        url = urlhelp.protocolise(resource)
+        resp = requests.get(url)
+        flike = HTTPFlike(resp.content, url=url, headers=resp.headers)
         return flike
 
     @wraps(ffs.filesystem.BaseFilesystem.parent)
@@ -221,7 +241,10 @@ class HTTPPath(ffs.path.BasePath):
         Return: Flike
         Exceptions: None
         """
-        self._flike = self.fs.open(self)
+        # We have to pass the value here because urlparse will
+        # iterate through sections, expecting it to be stringy.
+        # Which causes Eternal Recursion
+        self._flike = self.fs.open(self._value)
         return self._flike
 
     def __exit__(self, msg, err, tb):
