@@ -12,6 +12,7 @@ Frist entry is the Indeterminate CSV class (ducktypes as both a reader and write
 you do something deterministic)x
 Add a csv contextmanager to Path
 DiskFilesystem.open() implicitly calls expanduser
+Initial implementation of a HTTP path system
 
 0.0.4.1 (Sep 12 2012)
 +++++++++++++++++++++
