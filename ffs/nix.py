@@ -298,8 +298,28 @@ def mkdir_p(path):
             pass
         else: raise
 
-# !!! Wrap to accept path objects
-mv = shutil.move
+def mv(resource, target):
+    """
+    Move RESOURCE to TARGET.
+
+    Arguments:
+    - `resource`: str
+    - `target`: str
+
+    Return: None
+    Exceptions:None
+    """
+    shutil.move(resource, target)
+    # try:
+    #     shutil.move(resource, target)
+    # except shutil.Error:
+    #     if shutil._basename(resource) == target:
+    #         return # Why would you do this?
+    #     if not os.path.exists(target):
+    #         raise
+    #     rm(target, recursive=True)
+    #     shutil.move(resource, target)
+
 
 def pwd():
     """

@@ -396,6 +396,54 @@ class MkdirPTestCase(unittest.TestCase):
         nix.mkdir_p(p)
         self.assertTrue(os.path.isdir(self.nopath + '/some/long/structure'))
 
+class MvTestCase(unittest.TestCase):
+    def setUp(self):
+        self.tpath = Path(tempfile.mkdtemp())
+
+    def tearDown(self):
+        nix.rm_r(self.tpath)
+
+    def test_mv(self):
+        "Simple case"
+        one = self.tpath + 'one.txt'
+        one << 'Contentz'
+        target = str(self.tpath) + '/two.txt'
+        self.assertFalse(os.path.exists(target))
+        nix.mv(str(one), target)
+        two = self.tpath + 'two.txt'
+        self.assertTrue(os.path.exists(target))
+        self.assertEqual('Contentz', two.contents)
+
+    def test_mv_target_exists(self):
+        "Should just overwrite"
+        one = Path(str(self.tpath) + '//one.txt')
+        two = Path(str(self.tpath) + '//two.txt')
+        one << 'Contentz'
+        two << 'Contentz Two'
+
+        target = str(two)
+
+        self.assertTrue(os.path.exists(target))
+        nix.mv(str(one), target)
+        self.assertTrue(os.path.exists(target))
+        self.assertFalse(os.path.exists(str(one)))
+        self.assertEqual('Contentz', two.contents)
+
+    def test_mv_target_dir_exists(self):
+        "Should just overwrite"
+        one = Path(str(self.tpath) + '//one.txt')
+        two = Path(str(self.tpath) + '//two.txt')
+        one << 'Contentz'
+        two << 'Contentz Two'
+
+        target = str(two)
+
+        self.assertTrue(os.path.exists(target))
+        nix.mv(str(one), str(self.tpath))
+        self.assertTrue(os.path.exists(target))
+        self.assertFalse(os.path.exists(str(one)))
+        self.assertEqual('Contentz', two.contents)
+
 
 class RmTestCase(unittest.TestCase):
 

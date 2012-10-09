@@ -1,8 +1,8 @@
 History
 -------
 
-0.0.5
-+++++
+0.0.5 (Sep 22 2012)
++++++++++++++++++++
 
 Add a mv() method to Path.
 Re-enable rstrip(). (Stdlib uses it e.g. shutil._basename)

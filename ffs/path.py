@@ -750,6 +750,23 @@ class Path(LeafBranchPath):
         self.fs.mv(self, target)
         return Path(target)
 
+    #!!! Implement this
+    def rm(self,* patterns):
+        """
+        If PATTERNS is empty, remove SELF.
+
+        Otherwise PATTERNS should be n items to remove.
+        PATTERNS themselves can contain glob patterns, and all matching
+        pathnames will be removed.
+
+        Arguments:
+        - `*patterns`: str
+
+        Return: None
+        Exceptions: None
+        """
+        raise NotImplementedError
+
     @contextlib.contextmanager
     def csv(self, delimiter=','):
         """
