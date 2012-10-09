@@ -39,5 +39,5 @@ setup(
         "Topic :: Software Development :: Libraries"
         ],
     install_requires=install_requires,
-    packages = ['ffs'],
+    packages = ['ffs', 'ffs.contrib'],
     )
