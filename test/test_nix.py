@@ -431,8 +431,8 @@ class MvTestCase(unittest.TestCase):
 
     def test_mv_target_dir_exists(self):
         "Should just overwrite"
-        one = Path(str(self.tpath) + '//one.txt')
-        two = Path(str(self.tpath) + '//two.txt')
+        one = Path(str(self.tpath) + '/one.txt')
+        two = Path(str(self.tpath) + '/two.txt')
         one << 'Contentz'
         two << 'Contentz Two'
 
@@ -440,9 +440,10 @@ class MvTestCase(unittest.TestCase):
 
         self.assertTrue(os.path.exists(target))
         nix.mv(str(one), str(self.tpath))
+
         self.assertTrue(os.path.exists(target))
-        self.assertFalse(os.path.exists(str(one)))
-        self.assertEqual('Contentz', two.contents)
+        self.assertTrue(os.path.exists(str(one)))
+        self.assertEqual('Contentz', one.contents)
 
 
 class RmTestCase(unittest.TestCase):
