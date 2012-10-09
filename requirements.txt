@@ -7,3 +7,4 @@ wsgiref==0.1.2
 six==1.2.0
 requests
 urlhelp
+jinja2

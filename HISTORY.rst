@@ -1,6 +1,11 @@
 History
 -------
 
+0.0.6 (Oct 09 2012)
++++++++++++++++++++
+
+Add ffs.contrib.cast for templating helpers.
+
 0.0.5 (Sep 22 2012)
 +++++++++++++++++++
 

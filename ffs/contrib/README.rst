@@ -11,3 +11,5 @@ HadoopFSPath
 SFTPPath
 FTPPath
 ZipPath
+
+Template Rendering (contrib-tpl)
