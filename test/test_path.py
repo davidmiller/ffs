@@ -450,7 +450,7 @@ class PropertiesTestCase(PathTestCase):
         "list of files"
         p = Path(self.tdir)
         touch(p + 'myfile.txt')
-        self.assertEqual(['myfile.txt'], p.contents)
+        self.assertEqual([self.tdir + '/myfile.txt'], p.contents)
 
     def test_contents_nopath(self):
         "Should raise"
@@ -542,6 +542,15 @@ class NixMethodsTestCase(PathTestCase):
         p = Path(nopath)
         with self.assertRaises(exceptions.DoesNotExistError):
             p.ls()
+
+    def test_ls_ispath(self):
+        "Should return a list of paths"
+        p = Path(self.tdir)
+        p.touch('one.txt', 'two.txt')
+        contents = p.ls()
+        self.assertEqual(2, len(contents))
+        self.assertTrue(all([isinstance(i, Path) for i in contents]))
+        self.assertEqual([self.tdir + '/one.txt', self.tdir + '/two.txt'], contents)
 
     def test_touch(self):
         "Should touch it"

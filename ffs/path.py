@@ -367,7 +367,7 @@ class BasePath(str):
         if self.is_file:
             return self._value
         elif self.is_dir:
-            return self.fs.ls(self)
+            return [self/x for x in self.fs.ls(self)]
         msg = "Cannot access {0}: No such file or directory".format(self)
         raise exceptions.DoesNotExistError(msg)
 
