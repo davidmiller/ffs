@@ -8,7 +8,6 @@ _strblacklist = [
             'capitalize',
             'center',
             'count',
-            'decode',
             'encode',
             'expandtabs',
             'format',
