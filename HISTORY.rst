@@ -1,8 +1,8 @@
 History
 -------
 
-0.0.7
-+++++
+0.0.7 (Oct 11 2012)
++++++++++++++++++++
 
 Fix bug with Path.ls() so that children are returned as Path objects
 relative to the parent.
