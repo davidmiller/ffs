@@ -6,6 +6,7 @@ Pathname API
 from __future__ import with_statement
 
 import contextlib
+import fnmatch
 try:
     import json
 except ImportError:
@@ -353,7 +354,7 @@ class BasePath(str):
 
     # !!! Split - change default arg
 
-    def ls(self):
+    def ls(self, *args):
         """
         If we are a directory, return an iterable of the contents.
 
@@ -361,13 +362,21 @@ class BasePath(str):
 
         If we don't exist, raise DoesNotExistError.
 
+        If we have passed PATTERN, then only return such entries as match
+
+        Arguments:
+        - `pattern`: str
+
         Return: iterable or string
         Exceptions: DoesNotExistError
         """
         if self.is_file:
             return self._value
         elif self.is_dir:
-            return [self/x for x in self.fs.ls(self)]
+            contents =  self.fs.ls(self)
+            if args:
+                contents = fnmatch.filter(contents, args[0])
+            return [self/x for x in contents]
         msg = "Cannot access {0}: No such file or directory".format(self)
         raise exceptions.DoesNotExistError(msg)
 
@@ -768,19 +777,24 @@ class Path(LeafBranchPath):
         raise NotImplementedError
 
     @contextlib.contextmanager
-    def csv(self, delimiter=','):
+    def csv(self, delimiter=',', header=False):
         """
         Contextmanager to use SELF as a csv.Reader object
 
         Use DELIMITER as the csv's delimiter
 
+        If HEADER is True, consume the frist row of the CSV as a header,
+        and use this to generate a namedtuple from the CSV.
+        Return rows as instances of this namedtuple.
+
         Arguments:
         - `delimiter`: str
+        - `header`: bool
 
         Return: csv.Reader
         Exceptions: None
         """
-        with formats.CSV(self, delimiter=delimiter) as csv:
+        with formats.CSV(self, delimiter=delimiter, header=header) as csv:
             yield csv
 
     # !!! json_dump()

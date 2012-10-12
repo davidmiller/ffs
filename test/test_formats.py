@@ -1,6 +1,7 @@
 """
 Unittests for the ffs.formats module
 """
+import collections
 import csv
 import sys
 import tempfile
@@ -168,6 +169,46 @@ class CSVTestCase(unittest.TestCase):
                 pres.side_effect = lambda : setattr(acsv, 'resolved', MagicMock())
                 iterable = acsv.writerows([1, 3])
                 pres.assert_called_with()
+
+    def test_csv_headers(self):
+        "Generate namedtuples from headers."
+        self.tcsv.truncate()
+        self.tcsv << 'frist,last\n'
+        self.tcsv << 'a,b'
+        with self.tcsv.csv(header=True) as acsv:
+            row = acsv.next()
+            self.assertEqual('a', row.frist)
+            self.assertEqual('b', row.last)
+
+    def test_csv_headers_lower(self):
+        "Generate namedtuples from headers."
+        self.tcsv.truncate()
+        self.tcsv << 'FRIST,LAST\n'
+        self.tcsv << 'a,b'
+        with self.tcsv.csv(header=True) as acsv:
+            row = acsv.next()
+            self.assertEqual('a', row.frist)
+            self.assertEqual('b', row.last)
+
+    def test_csv_headers_strip(self):
+        "Generate namedtuples from headers."
+        self.tcsv.truncate()
+        self.tcsv << 'frist      ,     last\n'
+        self.tcsv << 'a,b'
+        with self.tcsv.csv(header=True) as acsv:
+            row = acsv.next()
+            self.assertEqual('a', row.frist)
+            self.assertEqual('b', row.last)
+
+    def test_csv_headers_whitespace(self):
+        "Generate namedtuples from headers."
+        self.tcsv.truncate()
+        self.tcsv << 'frist thing      ,     last one\n'
+        self.tcsv << 'a,b'
+        with self.tcsv.csv(header=True) as acsv:
+            row = acsv.next()
+            self.assertEqual('a', row.frist_thing)
+            self.assertEqual('b', row.last_one)
 
 if __name__ == '__main__':
     unittest.main()

@@ -40,7 +40,6 @@ class BaseFilesystem(object):
         """
         raise NotImplementedError('!')
 
-
     def getwd(self):
         """
         Should return the 'current working directory' for this

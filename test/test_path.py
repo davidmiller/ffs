@@ -388,7 +388,6 @@ class ContextmanagingTestCase(PathTestCase):
             self.assertTrue(os.path.exists(str(p + 'my.txt')))
         self.assertFalse(os.path.exists(val))
 
-
 class PropertiesTestCase(PathTestCase):
     "Properties of instances"
 
@@ -552,6 +551,15 @@ class NixMethodsTestCase(PathTestCase):
         self.assertTrue(all([isinstance(i, Path) for i in contents]))
         self.assertEqual([self.tdir + '/one.txt', self.tdir + '/two.txt'], contents)
 
+    def test_ls_glob(self):
+        "only return the globbed contents"
+        p = Path(self.tdir)
+        p.touch('one.txt', 'two.txt', 'three.csv')
+        contents = p.ls('*.txt')
+        self.assertEqual(2, len(contents))
+        self.assertTrue(all([isinstance(i, Path) for i in contents]))
+        self.assertEqual([self.tdir + '/one.txt', self.tdir + '/two.txt'], contents)
+
     def test_touch(self):
         "Should touch it"
         p = Path(self.tdir) + 'notyet.txt'
@@ -699,7 +707,17 @@ class CsvIshTestCase(PathTestCase):
                 self.assertEqual(0, i)
                 self.assertEqual('1 2 3 4'.split(), row)
 
-
+    def test_as_csv_header(self):
+        "Csv contextmanager with header"
+        p = Path(self.tmpath)
+        p << 'a,b,c,d\n'
+        p << '1,2,3,4'
+        with p.csv(header=True) as csv:
+            row = csv.next()
+            self.assertEqual('1', row.a)
+            self.assertEqual('2', row.b)
+            self.assertEqual('3', row.c)
+            self.assertEqual('4', row.d)
 
 if __name__ == '__main__':
     unittest.main()

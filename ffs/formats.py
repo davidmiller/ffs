@@ -1,6 +1,7 @@
 """
 ffs.formats
 """
+import collections
 import csv
 
 from six.moves import StringIO
@@ -16,13 +17,23 @@ class CSV(object):
 
     If you try to iterate through it, the CSV collapses into a reader.
     If you try to writerow() it, the CSV collapses into a writer.
+
+    If HEADER is True, we consume the frist row, and use it to generate a
+    namedtuple based on the fieldnames, returning rows as an instance of this
+    class.
     """
     # !!! add strip= True
-    def __init__(self, path, delimiter=','):
+    def __init__(self, path, delimiter=',', header=False):
         self.path = path
         self.delimiter = delimiter
+        self.header = header
         self.resolved = None
         self.fh = None
+        self.rowklass = None
+        # Later we should figure out what to do with writers with headers?
+        if header:
+            self._resolve_reader()
+            self._generate_rowklass()
 
     def __repr__(self):
         rpr = '<{0} CSV {1}>'.format('Unresolved', self.path)
@@ -67,6 +78,19 @@ class CSV(object):
         self.fh = self.path.fs.open(self.path, 'w')
         self.resolved = csv.writer(self.fh, delimiter=self.delimiter)
 
+    def _generate_rowklass(self):
+        """
+        Create a namedtuple based on the frist row of the CSV.
+
+        Store this at self.rowklass
+
+        Return: None
+        Exceptions: None
+        """
+        header = self.resolved.next()
+        clean = [s.strip().lower().replace(' ', '_') for s in header]
+        self.rowklass = collections.namedtuple('RowKlass', clean)
+
     def __iter__(self):
         """
         If we are unresolved, resolve to a reader, and return an Iterable.
@@ -83,6 +107,8 @@ class CSV(object):
 
         def gen():
             for row in self.resolved:
+                if self.header and self.rowklass:
+                    row = self.rowklass(*row)
                 yield row
 
         return gen()
@@ -120,7 +146,10 @@ class CSV(object):
         if isinstance(self.resolved, WriterType):
             raise AttributeError('CSV Writer object has no attribute next')
 
-        return self.resolved.next()
+        row = self.resolved.next()
+        if self.header and self.rowklass:
+            row = self.rowklass(*row)
+        return row
 
     def writerow(self, row):
         """
