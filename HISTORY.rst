@@ -1,8 +1,8 @@
 History
 -------
 
-0.0.7.1
-+++++++
+0.0.7.1 (Oct 12 2012)
++++++++++++++++++++++
 
 Add glob patterns to Path().ls()
 Add a header argument to Path.csv() to autocreate CSV row classes
