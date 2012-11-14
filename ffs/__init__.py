@@ -23,6 +23,7 @@ from ffs.nix import (cd, chmod, chown, cmp,
                      touch, unlink, which,
                      is_exe)
 from ffs.path import Path
+from ffs._version import __version__
 
 ts2dt = datetime.datetime.utcfromtimestamp
 
@@ -32,6 +33,7 @@ else:
     OS = "LINUX!"
 
 __all__ = [
+    '__version__'
     # Modules
     'exceptions',
     'formats',
