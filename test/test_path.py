@@ -371,23 +371,6 @@ class ContextmanagingTestCase(PathTestCase):
             self.assertEqual(filename, fh.name)
         pass
 
-    def test_temp_contextmanager(self):
-        "should yeild a path that exists"
-        with Path.temp() as p:
-            val = str(p)
-            self.assertTrue(os.path.exists(val))
-            self.assertTrue(os.path.isdir(val))
-        self.assertFalse(os.path.isdir(val))
-        self.assertFalse(os.path.exists(val))
-
-    def test_with_tmp_contents(self):
-        "Should kill directory contents"
-        with Path.temp() as p:
-            val = str(p)
-            touch(p + 'my.txt')
-            self.assertTrue(os.path.exists(str(p + 'my.txt')))
-        self.assertFalse(os.path.exists(val))
-
 class PropertiesTestCase(PathTestCase):
     "Properties of instances"
 
@@ -670,6 +653,52 @@ class NixMethodsTestCase(PathTestCase):
         p = Path(self.tdir) + 'nonexistant'
         with self.assertRaises(exceptions.DoesNotExistError):
             p.mv(self.tdir)
+
+class TemporaryTestCase(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_temp_contextmanager(self):
+        "should yeild a path that exists"
+        with Path.temp() as p:
+            val = str(p)
+            self.assertTrue(os.path.exists(val))
+            self.assertTrue(os.path.isdir(val))
+        self.assertFalse(os.path.isdir(val))
+        self.assertFalse(os.path.exists(val))
+
+    def test_with_tmp_contents(self):
+        "Should kill directory contents"
+        with Path.temp() as p:
+            val = str(p)
+            touch(p + 'my.txt')
+            self.assertTrue(os.path.exists(str(p + 'my.txt')))
+        self.assertFalse(os.path.exists(val))
+
+    def test_tmp_function(self):
+        "Should leave the tempdir"
+        p = Path.newdir()
+        self.assertTrue(os.path.exists(p))
+        self.assertTrue(os.path.isdir(p))
+
+    def test_tempfile_contextmanager(self):
+        "should yeild a file that exists"
+        with Path.tempfile() as p:
+            val = str(p)
+            self.assertTrue(os.path.exists(val))
+            self.assertTrue(os.path.isfile(val))
+        self.assertFalse(os.path.isfile(val))
+        self.assertFalse(os.path.exists(val))
+
+    def test_tmpfile_function(self):
+        "Should leave the tempdir"
+        p = Path.newfile()
+        self.assertTrue(os.path.exists(p))
+        self.assertTrue(os.path.isfile(p))
+
 
 class JsonishTestCase(unittest.TestCase):
     "Tests for the JSON operations"

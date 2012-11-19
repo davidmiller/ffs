@@ -664,6 +664,57 @@ class Path(LeafBranchPath):
         finally:
             fs.rm(tmpath, recursive=True)
 
+    @classmethod
+    @contextlib.contextmanager
+    def tempfile(klass):
+        """
+        Create a temporary file.
+
+        If this is called as a contextmanager, delete
+        the file on exiting the block, else leave it to the
+        user to delete as appropriate.
+
+        Return: Path
+        Exceptions: None
+        """
+        fs = klass.fsflavour()
+        tmpath = fs.tempfile()
+        pth = klass(tmpath)
+        pth.touch()
+        try:
+            yield pth
+        finally:
+            fs.rm(tmpath)
+        return
+
+    @classmethod
+    def newdir(klass):
+        """
+        Create a directory that previously did not exist.
+        (Typically in the system's temp dir)
+
+        Return: klass()
+        Exceptions: None
+        """
+        fs = klass.fsflavour()
+        tmpath = fs.tempdir()
+        return klass(tmpath)
+
+    @classmethod
+    def newfile(klass):
+        """
+        Create a file that previously did not exist.
+        (typically in the system's temp dir)
+
+        Return: klass()
+        Exceptions: None
+        """
+        fs = klass.fsflavour()
+        tmpfile = fs.tempfile()
+        pth = klass(tmpfile)
+        pth.touch()
+        return pth
+
     def touch(self, *args):
         """
         Equivalent to calling the *nix command touch on SELF.

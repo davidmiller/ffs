@@ -1,10 +1,15 @@
 History
 -------
 
+0.0.7.3 (Nov 19 2012)
++++++++++++++++++++++
+
+Add Path.newfile() and Path.newdir() - non destructive versions of the
+contextmanager tempfile() && tempath()
+
 0.0.7.2 (Nov 14 2012)
 +++++++++++++++++++++
 Add __version__ to main module
-
 
 0.0.7.1 (Oct 12 2012)
 +++++++++++++++++++++
@@ -20,11 +25,10 @@ relative to the parent.
 
 Expose Path.decode (Useful when using Paths as Django template directories)
 
-
 0.0.6 (Oct 09 2012)
 +++++++++++++++++++
 
-Add ffs.contrib.cast for templating helpers.
+Add ffs.contrib.mold for templating helpers.
 
 0.0.5 (Sep 22 2012)
 +++++++++++++++++++
