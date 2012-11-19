@@ -33,7 +33,7 @@ API Docs
     modules/formats
     modules/util
     modules/contrib/http
-
+    modules/contrib/mold
 
 
 Indices and tables
