@@ -1,5 +1,8 @@
 History
 -------
+0.0.7.4 (May 02 2013)
++++++++++++++++++++++
+Add Path.here() for a nicer syntax for the directory of the calling file.
 
 0.0.7.3 (Nov 19 2012)
 +++++++++++++++++++++
