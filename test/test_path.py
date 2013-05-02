@@ -440,6 +440,14 @@ class PropertiesTestCase(PathTestCase):
         with self.assertRaises(exceptions.DoesNotExistError):
             Path(nopath).contents
 
+    def test_here(self):
+        """
+        Should return a path instance representing the directory
+        of the calling site.
+        """
+        expected = os.path.dirname(__file__)
+        self.assertEqual(expected, Path.here())
+
 class StringLikeTestCase(PathTestCase):
 
     def test_blacklisted(self):

@@ -8,3 +8,4 @@ six==1.2.0
 requests
 urlhelp
 jinja2
+cssselect

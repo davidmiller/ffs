@@ -14,6 +14,7 @@ except ImportError:
 import os
 import re
 import tempfile
+import traceback
 import types
 
 import six
@@ -715,6 +716,27 @@ class Path(LeafBranchPath):
         pth.touch()
         return pth
 
+    @staticmethod
+    def here():
+        """
+        Return a path representing the directory of the
+        file that this method was called from.
+
+        Return: Path
+        Exceptions: None
+        """
+        stack = traceback.extract_stack()
+        me = __file__
+        if me.endswith('.pyc') or me.endswith('.pyo'):    # Bytecode!
+            me = me [:-1]
+
+        for i, frame in enumerate(stack):
+            if frame[0] == me:
+                there = stack[i-1][0]
+                return Path(there).abspath.parent
+
+        return
+
     def touch(self, *args):
         """
         Equivalent to calling the *nix command touch on SELF.
@@ -851,4 +873,3 @@ class Path(LeafBranchPath):
     # !!! json_dump()
     # !!! pickle_load()
     # !!! pickle_dump()
-
