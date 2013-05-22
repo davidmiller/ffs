@@ -176,7 +176,14 @@ class BasePath(str):
         as we're subclassing string, we have to override getslice.
         this is a backwards compatibility hack, we just delegate to the
         more modern getitem.
+
+        Unless we're being called from os.path on a posix platform.
+        In which case we should pretend to be a string.
         """
+        stack = traceback.extract_stack()
+        fname, line, fn, code = stack[-2]
+        if fname.find('posixpath') != -1 and fn == 'split':
+            return str(self).__getitem__(slice(*args))
         return self.__getitem__(slice(*args))
 
     def __setitem__(self, key, value):

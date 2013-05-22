@@ -52,6 +52,13 @@ class PathRegressionTestCase(unittest.TestCase):
         p2 = Path(p)
         self.assertEqual('', p2.contents)
 
+    def test_os_path_split(self):
+        "should split it"
+        p = Path('/tmp/my.file')
+        splat = os.path.split(p)
+        self.assertEqual('/tmp', splat[0])
+        self.assertEqual('my.file', splat[1])
+
 
 
 
