@@ -60,6 +60,13 @@ class BasePath(str):
     """
     fsflavour = filesystem.DiskFilesystem
 
+    def __new__(kls, *args, **kwargs):
+        if len(args) > 0 and isinstance(args[0], six.string_types) and args[0].startswith('http://'):
+            from ffs.contrib.http import HTTPPath
+            if kls != HTTPPath:
+                return HTTPPath(args[0])
+        return super(BasePath, kls).__new__(kls, *args, **kwargs)
+
     def __init__(self, value=None):
         """
         as str objects are immutable, we must store the 'value'
@@ -549,7 +556,6 @@ class LeafBranchPath(BasePath):
         if self.is_dir:
             raise TypeError("Can't tread a directory as JSON Larry... ")
         return json.loads(self.contents)
-
 
 
 class Path(LeafBranchPath):

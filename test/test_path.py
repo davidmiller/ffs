@@ -23,6 +23,7 @@ if sys.version.startswith('3.1'):
 import six
 
 from ffs import exceptions, path, _path_blacklists
+from ffs.contrib import http
 from ffs.path import Path, Pset
 from ffs.nix import touch, rm, rm_r, rmdir
 from ffs._py3k import FileKlass
@@ -63,9 +64,10 @@ class BasePathTestCase(unittest.TestCase):
     # truncate
     # contents
     # json_load
-    def test_foo(self):
-        """ """
-        pass
+    def test_init_with_http(self):
+        "Return HttpPath"
+        p = Path('http://example.com')
+        self.assertIsInstance(p, http.HTTPPath)
 
     def tearDown(self):
         pass
