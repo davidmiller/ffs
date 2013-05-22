@@ -36,6 +36,22 @@ def _stringcoll(coll):
         return len([s for s in coll if isinstance(s, six.string_types)]) == len(coll)
     return False
 
+class Pset(set):
+    """
+    Set subclass for representing collections of paths
+    """
+
+    @property
+    def basenames(self):
+        """
+        Return the basenames for our path collection
+
+        Return: iterable
+        Exceptions: None
+        """
+        return Pset(p[-1] for p in self)
+
+
 # !!! Normalization to clean up ../, . && //
 
 class BasePath(str):
@@ -384,7 +400,10 @@ class BasePath(str):
             contents =  self.fs.ls(self)
             if args:
                 contents = fnmatch.filter(contents, args[0])
-            return [self/x for x in contents]
+            if len(contents) == 0:
+                return []
+            return Pset(self/x for x in contents)
+
         msg = "Cannot access {0}: No such file or directory".format(self)
         raise exceptions.DoesNotExistError(msg)
 

@@ -7,7 +7,6 @@ from __future__ import with_statement
 
 import os
 import re
-import urlparse
 from _functools import partial
 
 from six.moves import StringIO

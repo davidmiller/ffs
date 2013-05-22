@@ -23,7 +23,7 @@ if sys.version.startswith('3.1'):
 import six
 
 from ffs import exceptions, path, _path_blacklists
-from ffs.path import Path
+from ffs.path import Path, Pset
 from ffs.nix import touch, rm, rm_r, rmdir
 from ffs._py3k import FileKlass
 
@@ -37,6 +37,14 @@ class StringCollTestCase(unittest.TestCase):
             self.assertTrue(path._stringcoll(yes))
         for no in nos:
             self.assertFalse(path._stringcoll(no))
+
+class PsetTestCase(unittest.TestCase):
+
+    def test_basenames(self):
+        "Return the basenames for a collection of paths."
+        pset = Pset([Path('foo/bar.py'), Path('fizz/buzz.txt')])
+        for bname in ['bar.py', 'buzz.txt']:
+            self.assertIn(bname, pset.basenames)
 
 
 class BasePathTestCase(unittest.TestCase):
@@ -432,7 +440,8 @@ class PropertiesTestCase(PathTestCase):
         "list of files"
         p = Path(self.tdir)
         touch(p + 'myfile.txt')
-        self.assertEqual([self.tdir + '/myfile.txt'], p.contents)
+        self.assertIn(self.tdir + '/myfile.txt', p.contents)
+        self.assertEqual(1, len(p.contents))
 
     def test_contents_nopath(self):
         "Should raise"
@@ -540,7 +549,15 @@ class NixMethodsTestCase(PathTestCase):
         contents = p.ls()
         self.assertEqual(2, len(contents))
         self.assertTrue(all([isinstance(i, Path) for i in contents]))
-        self.assertEqual([self.tdir + '/one.txt', self.tdir + '/two.txt'], contents)
+        for p in [self.tdir + '/one.txt', self.tdir + '/two.txt']:
+            self.assertIn(p, contents)
+
+    def test_ls_returns_dir(self):
+        "Should return a dictionary"
+        p = Path(self.tdir)
+        p.touch('one.txt', 'two.txt')
+        contents = p.ls()
+        self.assertIsInstance(contents, Pset)
 
     def test_ls_glob(self):
         "only return the globbed contents"
@@ -549,7 +566,8 @@ class NixMethodsTestCase(PathTestCase):
         contents = p.ls('*.txt')
         self.assertEqual(2, len(contents))
         self.assertTrue(all([isinstance(i, Path) for i in contents]))
-        self.assertEqual([self.tdir + '/one.txt', self.tdir + '/two.txt'], contents)
+        for p in [self.tdir + '/one.txt', self.tdir + '/two.txt']:
+            self.assertIn(p, contents)
 
     def test_touch(self):
         "Should touch it"
