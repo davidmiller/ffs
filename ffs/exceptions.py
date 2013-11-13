@@ -23,3 +23,6 @@ class NotRaisedError(Error):
 
 class BadParentingError(Error):
     "We expected the parents to be there, but no, just a dangling child."
+
+class NotATarFileError(Error):
+    "This was supposed to be a tarfile. It is not."
