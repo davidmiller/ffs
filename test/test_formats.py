@@ -210,6 +210,16 @@ class CSVTestCase(unittest.TestCase):
             self.assertEqual('a', row.frist_thing)
             self.assertEqual('b', row.last_one)
 
+    def test_csv_headers_trailing_commas(self):
+        "Generate namedtuples from headers."
+        self.tcsv.truncate()
+        self.tcsv << 'frist thing      ,     last one,\n'
+        self.tcsv << 'a,b,'
+        with self.tcsv.csv(header=True) as acsv:
+            row = acsv.next()
+            self.assertEqual('a', row.frist_thing)
+            self.assertEqual('b', row.last_one)
+            self.assertEqual('', row.field_2)
+
 if __name__ == '__main__':
     unittest.main()
-
