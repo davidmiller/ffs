@@ -1,5 +1,10 @@
 History
 -------
+
+0.0.7.5
++++++++
+Fixes bugs with CSV header rows when CSV rows have trailing commas/periods.
+
 0.0.7.4 (May 02 2013)
 +++++++++++++++++++++
 Add Path.here() for a nicer syntax for the directory of the calling file.
