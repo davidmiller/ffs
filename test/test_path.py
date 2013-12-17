@@ -776,5 +776,21 @@ class CsvIshTestCase(PathTestCase):
             self.assertEqual('3', row.c)
             self.assertEqual('4', row.d)
 
+class MimetypeTestCase(PathTestCase):
+    def test_mimetype(self):
+        p = Path(self.tdir)/'wat.csv'
+        p << 'a,b,c'
+        self.assertEqual(p.mimetype, 'text/csv')
+
+    def test_mimetype_dir_raises(self):
+        p = Path(self.tdir)
+        with self.assertRaises(exceptions.InappropriateError):
+            p.mimetype
+
+    def test_mimetype_nonexistant_raises(self):
+        p = Path('/wat/not/this/a/thing?')
+        with self.assertRaises(exceptions.DoesNotExistError):
+            p.mimetype
+
 if __name__ == '__main__':
     unittest.main()
