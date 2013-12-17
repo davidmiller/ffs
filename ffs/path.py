@@ -8,9 +8,9 @@ from __future__ import with_statement
 import contextlib
 import fnmatch
 try:
-    import json
-except ImportError:
     import simplejson as json
+except ImportError:
+    import json
 import os
 import re
 import tempfile

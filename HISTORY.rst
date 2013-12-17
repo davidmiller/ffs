@@ -4,6 +4,7 @@ History
 0.0.7.5
 +++++++
 Fixes bugs with CSV header rows when CSV rows have trailing commas/periods.
+Uses simplejson when available.
 
 0.0.7.4 (May 02 2013)
 +++++++++++++++++++++
