@@ -88,7 +88,10 @@ class CSV(object):
         Exceptions: None
         """
         header = self.resolved.next()
-        clean = [s.strip().lower().replace(' ', '_') for s in header]
+        clean = [s.strip().lower().replace(' ', '_').replace('.', ' ') for s in header]
+        for i, v in enumerate(clean):
+            if v == '':
+                clean[i] = 'field_' + str(i)
         self.rowklass = collections.namedtuple('RowKlass', clean)
 
     def __iter__(self):

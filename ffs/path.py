@@ -8,9 +8,10 @@ from __future__ import with_statement
 import contextlib
 import fnmatch
 try:
-    import json
-except ImportError:
     import simplejson as json
+except ImportError:
+    import json
+import mimetypes
 import os
 import re
 import tempfile
@@ -19,7 +20,8 @@ import types
 
 import six
 
-from ffs import exceptions, filesystem, formats, nix, is_dir, is_file, size, _path_blacklists
+from ffs import (exceptions, filesystem, formats, nix, is_dir, is_file, size,
+                 _path_blacklists)
 
 def _stringcoll(coll):
     """
@@ -901,6 +903,25 @@ class Path(LeafBranchPath):
         """
         with formats.CSV(self, delimiter=delimiter, header=header) as csv:
             yield csv
+
+    @property
+    def mimetype(self):
+        """
+        Return a guessed mimetype for SELF.
+
+        If SELF is a directory, raise InappropriateError
+        If SELF is onexistant, raise DoesNotExistError
+
+        Return: str
+        Exceptions: InappropriateError, DoesNotExistError
+        """
+        if not self:
+            raise exceptions.DoesNotExistError()
+        if self.is_dir:
+            raise exceptions.InappropriateError()
+        mime, _ = mimetypes.guess_type(str(self))
+        return mime
+
 
     # !!! json_dump()
     # !!! pickle_load()
