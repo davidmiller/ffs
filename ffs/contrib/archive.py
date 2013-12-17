@@ -200,7 +200,7 @@ class TarFilesystem(BaseFilesystem):
         raise NotImplementedError("!")
 
     def ln(self, resource, target, symbolic=False):
-        raise exceptions.InappropriateError("Can't ln() on a Read-only filesystem")
+        raise exceptions.InappropriateError("Can't ln() on an Archive filesystem")
 
     def tempfile(self):
         raise exceptions.InappropriateError("Can't ln() on an Archive filesystem")
