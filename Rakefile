@@ -21,3 +21,11 @@ task :test, :python do |t, args|
     end
   end
 end
+
+task :sdist do
+  sh "python setup.py sdist"
+end
+
+task :build =>  [:test, :sdist] do
+  p "Building #{PROJ}"
+end
