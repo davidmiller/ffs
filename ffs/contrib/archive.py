@@ -76,8 +76,6 @@ class TarFilesystem(BaseFilesystem):
         Return: File-like-object
         Exceptions: None
         """
-        # with Path.tempdir() as tdir:
-        #     with nix.cd(tdir):
         return self.tarfile.extractfile(resource)
 
     def parent(self, resource):
@@ -154,10 +152,10 @@ class TarFilesystem(BaseFilesystem):
         Arguments:
         - `resource`: str or Path
 
-        Return: namedtuple
+        Return: TarInfo
         Exceptions: None
         """
-        raise NotImplementedError("!")
+        return self.tarfile.getmember(resource)
 
     def rm(self, resource, recursive=False):
         """
@@ -197,7 +195,12 @@ class TarFilesystem(BaseFilesystem):
         Return: bool
         Exceptions: None
         """
-        raise NotImplementedError("!")
+        if not self.exists(resource):
+            return False
+        item = self.stat(resource)
+        if item.isfile():
+            return True
+        return False
 
     def ln(self, resource, target, symbolic=False):
         raise exceptions.InappropriateError("Can't ln() on an Archive filesystem")

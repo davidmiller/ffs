@@ -2,6 +2,7 @@
 Unittests for the ffs.contrib.archive module
 """
 import sys
+import tarfile
 import unittest
 
 from mock import MagicMock, patch
@@ -47,6 +48,23 @@ class TarFilesystemTestCase(unittest.TestCase):
         "Should return a file like object"
         flike = self.fs.open('tmp/some.file')
         self.assertEqual('hai\n', flike.read())
+
+    def test_stat(self):
+        "Should return a stat like object"
+        stat = self.fs.stat('tmp/some.file')
+        self.assertIsInstance(stat, tarfile.TarInfo)
+
+    def test_is_leaf(self):
+        "Knows if this is a leaf or not"
+        self.assertEqual(True, self.fs.is_leaf('tmp/some.file'))
+
+    def test_is_leaf_not_a_leaf(self):
+        "Knows if this is a leaf or not"
+        self.assertEqual(False, self.fs.is_leaf('tmp/'))
+
+    def test_is_leaf_nonexistant(self):
+        "Knows if this is a leaf or not"
+        self.assertEqual(False, self.fs.is_leaf('wat/some.file'))
 
     def test_ln_raises(self):
         "Should raise inappropriate"
