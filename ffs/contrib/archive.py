@@ -3,8 +3,11 @@ Ffs implementations of archive formats - treating zip/tar etc as if
 they were untarred, transparently.
 """
 import tarfile
+import zipfile
 
-from ffs import exceptions, nix, Path
+import six
+
+from ffs import exceptions, nix, path
 from ffs.filesystem import BaseFilesystem
 
 class TarFilesystem(BaseFilesystem):
@@ -225,3 +228,141 @@ class TarFilesystem(BaseFilesystem):
 
     def cd(self, target):
         raise exceptions.InappropriateError("Can't cd() on an Archive filesystem")
+
+
+class ZipFilesystem(BaseFilesystem):
+    """
+    Zip archive based filesystem.
+    """
+    sep = '/'
+
+    def __init__(self, archive_path):
+        """
+        Get ourself a handle to the archive, or raise NotAZipFileError
+        """
+        if not zipfile.is_zipfile(str(archive_path)):
+            raise exceptions.NotAZipFileError(
+                '{0} is not a Zip file Larry :('.format(archive_path))
+        self.archive_path = archive_path
+        self.zipfile = zipfile.ZipFile(archive_path)
+
+
+class ZipPath(path.LeafBranchPath):
+    """
+    Top level entrypoint for working with Zipfiles ffs.
+    """
+    fsflavour = ZipFilesystem
+
+    def __init__(self, archive_path):
+        """
+        Create our filesystem, store value.
+        """
+        try:
+            self.fs = self.fsflavour(archive_path)
+        except exceptions.NotAZipFileError:
+            with zipfile.ZipFile(archive_path, 'a') as z:
+                z.writestr('.ffs', 'Created by ffs Python')
+            self.fs = self.fsflavour(archive_path)
+        self._value = archive_path
+
+    def __add__(self, other):
+        """
+        Add something to ourself, returning a new path object.
+
+        arguments:
+        - `other`: *
+
+        return: path
+        """
+        return ZipContentsPath((self._value, other))
+
+    def __lshift__(self, contents):
+        """
+        we overload the << operator to allow us easy file writing according to the
+        following rules:
+
+        if contents is a tuple of strings, treat the first string as
+        the path of the archive contents, and the second as the file
+        content.
+
+        otherwise, raise TypeError.
+
+        note::
+
+            if components of the path leading to self do not exist,
+            they will be created. it is assumed that the user knows their
+            own mind.
+
+        arguments:
+        - `contents`: stringtype
+
+        return: None
+        exceptions: TypeError
+        """
+        if not isinstance(contents, tuple):
+            raise TypeError("You have to write with tuples Larry...")
+        self/contents[0] << contents[1]
+        return
+
+
+class ZipContentsPath(path.LeafBranchPath):
+    """
+    Path for the contents of a Zip archive
+    """
+    fsflavour = ZipFilesystem
+
+    def __init__(self, *args):
+        """
+        Create our filesystem
+        """
+        archive_path, content = args[0]
+        try:
+            self.fs = self.fsflavour(archive_path)
+        except exceptions.NotAZipFileError:
+            with zipfile.ZipFile(archive_path, 'a') as z:
+                z.writestr('.ffs', 'Created by ffs Python')
+            self.fs = self.fsflavour(archive_path)
+        self._archive = archive_path
+        self._inner_value = content
+        self._value = self.fs.sep.join([archive_path, content])
+
+
+    def __lshift__(self, contents):
+        """
+        we overload the << operator to allow us easy file writing according to the
+        following rules:
+
+        if contents is not a stringtype, raise TypeError.
+
+        otherwise, treat self like a file and append contents to it.
+
+        note::
+
+            if components of the path leading to self do not exist,
+            they will be created. it is assumed that the user knows their
+            own mind.
+
+        arguments:
+        - `contents`: stringtype
+
+        return: None
+        exceptions: TypeError
+        """
+        if not isinstance(contents, six.string_types):
+            raise TypeError("you have to write with a stringtype larry... ")
+        temp = path.Path.newdir()
+        FOUND = False
+
+        with zipfile.ZipFile(self._archive, 'r') as rz:
+            with zipfile.ZipFile(temp/'tmp.zip', 'w') as wz:
+                for info in rz.infolist():
+                    content = rz.open(info).read()
+                    if info.filename == self._inner_value:
+                        FOUND = True
+                        content += "\n"+contents
+                    wz.writestr(info, content)
+                if not FOUND:
+                    wz.writestr(self._inner_value, contents)
+        nix.mv(temp/'tmp.zip', self._archive)
+        nix.rmdir(temp)
+        return

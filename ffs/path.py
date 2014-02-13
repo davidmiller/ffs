@@ -635,9 +635,9 @@ class Path(LeafBranchPath):
         exceptions: TypeError
         """
         if self.is_dir:
-            raise TypeError("you can't write to a directory larry... ")
+            raise TypeError("you can't write to a directory Larry... ")
         if not isinstance(contents, six.string_types):
-            raise TypeError("you have to write with a stringtype larry... ")
+            raise TypeError("you have to write with a stringtype Larry... ")
         with self.open('a') as fh:
             fh.write(contents)
         return

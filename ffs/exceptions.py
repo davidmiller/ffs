@@ -26,3 +26,6 @@ class BadParentingError(Error):
 
 class NotATarFileError(Error):
     "This was supposed to be a tarfile. It is not."
+
+class NotAZipFileError(Error):
+    "This was supposed to be a zipfile. It is not."
