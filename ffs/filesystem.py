@@ -101,12 +101,13 @@ class BaseFilesystem(object):
         """
         raise NotImplementedError("!")
 
-    def open(self, resource):
+    def open(self, resource, mode='r'):
         """
         Open RESOURCE as a file-like object
 
         Arguments:
         - `resource`: str or Path
+        - `mode`: str
 
         Return: File-like-object
         Exceptions: None
@@ -415,4 +416,3 @@ class DiskFilesystem(BaseFilesystem):
     @wraps(BaseFilesystem.rm)
     def rm(self, resource, recursive=False):
         return nix.rm(resource, recursive=recursive)
-
