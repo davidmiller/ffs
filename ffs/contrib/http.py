@@ -37,7 +37,7 @@ class HTTPFlike(Flike):
 
     @property
     def name(self):
-        return url.split('/')[-1]
+        return self.url.split('/')[-1]
         
     def ls(self):
         """
