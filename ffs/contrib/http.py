@@ -284,3 +284,9 @@ class HTTPPath(ffs.path.BasePath):
         Exceptions: TypeError
         """
         return ffs.path.BasePath.__iadd__(self, other)
+
+    def open(self):
+        """
+        Return the content as a file like object
+        """
+        return self.fs.open(self._value)

@@ -1,11 +1,14 @@
 
 
+import os
 import re
 import sys
 
 from distutils.core import setup
 
-VERSION_FILE = "ffs/_version.py"
+HERE = os.path.realpath(os.path.dirname(__file__))
+
+VERSION_FILE = os.path.join(HERE, "ffs/_version.py")
 verstrline = open(VERSION_FILE, "rt").read()
 VSRE = r'^__version__ = [\'"]([^\'"]*)[\'"]'
 mo = re.search(VSRE,  verstrline, re.M)
@@ -25,7 +28,7 @@ setup(
     author_email = "david@deadpansincerity.com",
     url = "http://www.deadpansincerity.com/docs/ffs",
     description = "Python Filesystem Api helpers",
-    long_description = open('README.rst').read() + "\n\n" +  open('HISTORY.rst').read(),
+    long_description = open(os.path.join(HERE, 'README.rst')).read() + "\n\n" +  open(os.path.join(HERE, 'HISTORY.rst')).read(),
     classifiers = [
         "Programming Language :: Python",
         "Programming Language :: Python :: 2.7",
