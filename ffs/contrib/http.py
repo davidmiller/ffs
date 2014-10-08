@@ -35,6 +35,10 @@ class HTTPFlike(Flike):
         self.dom = html.fromstring(args[0])
         Flike.__init__(self, *args, **kw)
 
+    @property
+    def name(self):
+        return url.split('/')[-1]
+        
     def ls(self):
         """
         Return a list of links in this HTML document.
