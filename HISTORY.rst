@@ -1,5 +1,10 @@
 History
 -------
+0.0.7.7 ()
++++++++++++++++++++++
+Adds .open() to HTTPPath to return file like objects
+Adds .checksum() to Path.
+
 0.0.7.6 (Feb 13 2014)
 +++++++++++++++++++++
 Adds minimal archive support to contrib.

@@ -7,6 +7,7 @@ from __future__ import with_statement
 
 import contextlib
 import fnmatch
+import hashlib
 try:
     import simplejson as json
 except ImportError:
@@ -910,7 +911,7 @@ class Path(LeafBranchPath):
         Return a guessed mimetype for SELF.
 
         If SELF is a directory, raise InappropriateError
-        If SELF is onexistant, raise DoesNotExistError
+        If SELF is nonexistant, raise DoesNotExistError
 
         Return: str
         Exceptions: InappropriateError, DoesNotExistError
@@ -922,7 +923,23 @@ class Path(LeafBranchPath):
         mime, _ = mimetypes.guess_type(str(self))
         return mime
 
+    @property
+    def checksum(self):
+        """
+        Return an MD5 checksum of this file. 
 
+        If SELF is a directory, raise InappropriateError
+        If SELF is nonexistant, raise DoesNotExistError
+
+        Return: str
+        """
+        if not self:
+            raise exceptions.DoesNotExistError()
+        if self.is_dir:
+            raise exceptions.InappropriateError()
+        checksum = hashlib.md5(self.open('rb').read()).hexdigest()
+        return checksum
+        
     # !!! json_dump()
     # !!! pickle_load()
     # !!! pickle_dump()
