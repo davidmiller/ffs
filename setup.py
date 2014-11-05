@@ -1,10 +1,14 @@
-
-
+"""
+Setup.py for FFs
+"""
 import os
 import re
 import sys
 
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 HERE = os.path.realpath(os.path.dirname(__file__))
 

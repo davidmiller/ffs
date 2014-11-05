@@ -544,6 +544,16 @@ class LeafBranchPath(BasePath):
         msg = "{0} isn't a thing Larry - how can it have contents?"
         raise exceptions.DoesNotExistError(msg)
 
+    @property
+    def as_zip(self):
+        """
+        Attempt to return the current path as a .zip path.
+
+        For the possible errors this can raise, see contrib.archive.ZipPath
+        """
+        from ffs.contrib.archive import ZipPath
+        return ZipPath(self)
+
     def json_load(self):
         """
         Treat SELF as a file containing JSON serialized data.
@@ -559,7 +569,7 @@ class LeafBranchPath(BasePath):
         if self.is_dir:
             raise TypeError("Can't tread a directory as JSON Larry... ")
         return json.loads(self.contents)
-
+    
 
 class Path(LeafBranchPath):
     """

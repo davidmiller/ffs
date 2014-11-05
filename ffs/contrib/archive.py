@@ -304,6 +304,13 @@ class ZipPath(path.LeafBranchPath):
         self/contents[0] << contents[1]
         return
 
+    def extract(self, target):
+        """
+        Extract the Zip archive SELF to TARGET.
+        """
+        self.fs.zipfile.extractall(target)
+        return
+
 
 class ZipContentsPath(path.LeafBranchPath):
     """
@@ -326,7 +333,7 @@ class ZipContentsPath(path.LeafBranchPath):
         self._inner_value = content
         self._value = self.fs.sep.join([archive_path, content])
 
-
+        
     def __lshift__(self, contents):
         """
         we overload the << operator to allow us easy file writing according to the
