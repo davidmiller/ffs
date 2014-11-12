@@ -5,6 +5,7 @@ History
 Adds .open() to HTTPPath to return file like objects
 Adds .checksum() to Path.
 Adds .as_zip to base leafbranch path
+Adds path argument to newfile 
 
 0.0.7.6 (Feb 13 2014)
 +++++++++++++++++++++

@@ -252,7 +252,7 @@ class ZipPath(path.LeafBranchPath):
     Top level entrypoint for working with Zipfiles ffs.
     """
     fsflavour = ZipFilesystem
-
+    
     def __init__(self, archive_path):
         """
         Create our filesystem, store value.

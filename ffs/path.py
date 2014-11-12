@@ -552,7 +552,7 @@ class LeafBranchPath(BasePath):
         For the possible errors this can raise, see contrib.archive.ZipPath
         """
         from ffs.contrib.archive import ZipPath
-        return ZipPath(self)
+        return ZipPath(self, error_if_not_found=True)
 
     def json_load(self):
         """
@@ -747,7 +747,7 @@ class Path(LeafBranchPath):
         return klass(tmpath)
 
     @classmethod
-    def newfile(klass):
+    def newfile(klass, filename=None):
         """
         Create a file that previously did not exist.
         (typically in the system's temp dir)
@@ -756,11 +756,17 @@ class Path(LeafBranchPath):
         Exceptions: None
         """
         fs = klass.fsflavour()
-        tmpfile = fs.tempfile()
-        pth = klass(tmpfile)
-        pth.touch()
-        return pth
-
+        if not filename:
+            tmpfile = fs.tempfile()
+            pth = klass(tmpfile)
+            pth.touch()
+            return pth
+        else:
+            tdir = klass.newdir()
+            newpath = tdir/filename
+            newpath.touch()
+            return newpath
+            
     @staticmethod
     def here():
         """
