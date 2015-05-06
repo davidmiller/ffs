@@ -898,7 +898,7 @@ class Path(LeafBranchPath):
         Return: None
         Exceptions: None
         """
-        raise NotImplementedError
+        self.fs.rm(self)
 
     @contextlib.contextmanager
     def csv(self, delimiter=',', header=False):
