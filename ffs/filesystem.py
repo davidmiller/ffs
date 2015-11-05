@@ -347,8 +347,8 @@ class DiskFilesystem(BaseFilesystem):
         return nix.getwd()
 
     @wraps(BaseFilesystem.ls)
-    def ls(self, resource):
-        return nix.ls(resource)
+    def ls(self, resource, all=None):
+        return nix.ls(resource, all=all)
 
     @wraps(BaseFilesystem.cd)
     def cd(self, target):

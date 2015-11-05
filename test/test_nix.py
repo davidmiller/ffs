@@ -31,12 +31,18 @@ class CDTestCase(unittest.TestCase):
     def test_as_fn(self):
         "Should work as a callable"
         nix.cd('/tmp')
-        self.assertEqual('/tmp', os.getcwd())
+        cwd = os.getcwd()
+        if sys.platform == 'darwin':
+            cwd = cwd.replace('/private', '')
+        self.assertEqual('/tmp', cwd)
 
     def test_contextmanager(self):
         "Should work as a contextmanager"
         with nix.cd('/tmp') as path:
-            self.assertEqual('/tmp', os.getcwd())
+            cwd = os.getcwd()
+            if sys.platform == 'darwin':
+                cwd = cwd.replace('/private', '')
+            self.assertEqual('/tmp', cwd)
             self.assertIsInstance(path, Path)
             self.assertEqual('/tmp', path)
         self.assertEqual(self.startdir, os.getcwd())
@@ -51,7 +57,10 @@ class CDTestCase(unittest.TestCase):
     def test_accepts_path(self):
         "Should Duck-type with Path objects"
         nix.cd(Path('/tmp'))
-        self.assertEqual('/tmp', os.getcwd())
+        cwd = os.getcwd()
+        if sys.platform == 'darwin':
+            cwd = cwd.replace('/private', '')        
+        self.assertEqual('/tmp', cwd)
 
 
 class ChmodTestCase(unittest.TestCase):

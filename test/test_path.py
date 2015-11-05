@@ -356,7 +356,10 @@ class ContextmanagingTestCase(PathTestCase):
     def test_contextmanager_dir(self):
         "With dir should change directory"
         with Path(self.tdir):
-            self.assertEqual(self.tdir, os.getcwd())
+            cwd = os.getcwd()
+            if sys.platform == 'darwin':
+                cwd = cwd.replace('/private', '')
+            self.assertEqual(self.tdir, cwd)
 
     def test_open(self):
         "path.open allows modes to be passed"
@@ -421,8 +424,11 @@ class PropertiesTestCase(PathTestCase):
     def test_abspath_tilde(self):
         "If *nix, expand ~"
         if not sys.platform.startswith('win'):
+            home = 'home'
+            if sys.platform == 'darwin':
+                home = 'Users'
             user = getpass.getuser()
-            expected = '/home/{0}/.emacs'.format(user)
+            expected = '/{0}/{1}/.emacs'.format(home, user)
             p = Path('~/.emacs')
             self.assertEqual(expected, p.abspath)
 

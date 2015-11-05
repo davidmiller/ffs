@@ -1,5 +1,6 @@
 History
 -------
+
 0.0.7.7 ()
 +++++++++++++++++++++
 Adds .open() to HTTPPath to return file like objects

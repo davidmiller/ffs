@@ -388,7 +388,7 @@ class BasePath(str):
 
     # !!! Split - change default arg
 
-    def ls(self, *args):
+    def ls(self, *args, **kwargs):
         """
         If we are a directory, return an iterable of the contents.
 
@@ -407,7 +407,8 @@ class BasePath(str):
         if self.is_file:
             return self._value
         elif self.is_dir:
-            contents =  self.fs.ls(self)
+            all = kwargs.get('all', None)
+            contents =  self.fs.ls(self, all=all)
             if args:
                 contents = fnmatch.filter(contents, args[0])
             if len(contents) == 0:

@@ -200,7 +200,7 @@ class DiskFilesystemTestCase(unittest.TestCase):
         "Should list"
         with patch('ffs.filesystem.nix.ls', return_value=['this.txt']) as pls:
             self.assertEqual(['this.txt'], self.fs.ls('/foo'))
-            pls.assert_called_with('/foo')
+            pls.assert_called_with('/foo', all=None)
 
     def test_cd(self):
         "Should change dir"
@@ -255,7 +255,10 @@ class DiskFilesystemTestCase(unittest.TestCase):
         "Expand ~"
         if not sys.platform.startswith('win'):
             user = getpass.getuser()
-            expected = '/home/{0}/.emacs'.format(user)
+            home = 'home'
+            if sys.platform == 'darwin':
+                home = 'Users'
+            expected = '/{0}/{1}/.emacs'.format(home, user)
             self.assertEqual(expected, self.fs.expanduser('~/.emacs'))
 
     def test_abspath(self):
@@ -268,7 +271,10 @@ class DiskFilesystemTestCase(unittest.TestCase):
         "Implicitly expanduser in abspath"
         if not sys.platform.startswith('win'):
             user = getpass.getuser()
-            expected = '/home/{0}/.emacs'.format(user)
+            home = 'home'
+            if sys.platform == 'darwin':
+                home = 'Users'
+            expected = '/{0}/{1}/.emacs'.format(home, user)
             self.assertEqual(expected, self.fs.abspath('~/.emacs'))
 
     def test_mkdir(self):
