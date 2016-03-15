@@ -92,6 +92,9 @@ class CSV(object):
         for h in header:
             underscoreless = h.strip().lower().replace(' ', '_').replace('.', '_')
             parenless = underscoreless.replace('(', '').replace(')', '')
+            if parenless == '':
+                clean.append(parenless)
+                continue
             try:
                 num = int(parenless[0])
                 numbers = {1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five',
