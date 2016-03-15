@@ -429,6 +429,9 @@ class PropertiesTestCase(PathTestCase):
                 home = 'Users'
             user = getpass.getuser()
             expected = '/{0}/{1}/.emacs'.format(home, user)
+            if user == 'travis':
+                expected = '/'
+
             p = Path('~/.emacs')
             self.assertEqual(expected, p.abspath)
 
