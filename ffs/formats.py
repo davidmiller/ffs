@@ -88,7 +88,26 @@ class CSV(object):
         Exceptions: None
         """
         header = self.resolved.next()
-        clean = [s.strip().lower().replace(' ', '_').replace('.', '_').replace('(', '').replace(')', '') for s in header]
+        clean = []
+        for h in header:
+            underscoreless = h.strip().lower().replace(' ', '_').replace('.', '_')
+            parenless = underscoreless.replace('(', '').replace(')', '')
+            try:
+                num = int(parenless[0])
+                numbers = {1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five',
+                           6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten'}
+                numless = numbers[num] + parenless[1:]
+                cleaned = numless
+            except ValueError:
+                cleaned = parenless
+
+            more = 1
+            while cleaned in clean:
+                more += 1
+                cleaned += str(more)
+
+            clean.append(cleaned)
+
         for i, v in enumerate(clean):
             if v == '':
                 clean[i] = 'field_' + str(i)
