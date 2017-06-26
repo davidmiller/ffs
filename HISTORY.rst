@@ -5,6 +5,7 @@ History
 +++++++
 
 Update to Python 3 compatibility.
+Drop Python 2.6 compatibility.
 
 Make Path.abspath pass through to the filesystem version.
 
