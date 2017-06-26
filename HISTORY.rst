@@ -1,12 +1,19 @@
 History
 -------
 
+0.0.9.0
++++++++
+
+Update to Python 3 compatibility.
+
+Make Path.abspath pass through to the filesystem version.
+
 0.0.7.7 ()
 +++++++++++++++++++++
 Adds .open() to HTTPPath to return file like objects
 Adds .checksum() to Path.
 Adds .as_zip to base leafbranch path
-Adds path argument to newfile 
+Adds path argument to newfile
 
 0.0.7.6 (Feb 13 2014)
 +++++++++++++++++++++

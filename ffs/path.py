@@ -368,8 +368,6 @@ class BasePath(str):
         Return: Path
         Exceptions: None
         """
-        if self.is_abspath:
-            return self
         return Path(self.fs.abspath(self))
 
     @property
@@ -570,7 +568,7 @@ class LeafBranchPath(BasePath):
         if self.is_dir:
             raise TypeError("Can't tread a directory as JSON Larry... ")
         return json.loads(self.contents)
-    
+
 
 class Path(LeafBranchPath):
     """
@@ -767,7 +765,7 @@ class Path(LeafBranchPath):
             newpath = tdir/filename
             newpath.touch()
             return newpath
-            
+
     @staticmethod
     def here():
         """
@@ -943,7 +941,7 @@ class Path(LeafBranchPath):
     @property
     def checksum(self):
         """
-        Return an MD5 checksum of this file. 
+        Return an MD5 checksum of this file.
 
         If SELF is a directory, raise InappropriateError
         If SELF is nonexistant, raise DoesNotExistError
@@ -956,7 +954,7 @@ class Path(LeafBranchPath):
             raise exceptions.InappropriateError()
         checksum = hashlib.md5(self.open('rb').read()).hexdigest()
         return checksum
-        
+
     # !!! json_dump()
     # !!! pickle_load()
     # !!! pickle_dump()
