@@ -6,9 +6,16 @@ from __future__ import with_statement
 import contextlib
 import errno
 import filecmp
-import grp
+try:
+    import grp
+except ImportError:
+    grp = None
 import os
-import pwd as pwdb
+import platform
+try:
+    import pwd as pwdb
+except ImportError:
+    pwdb = None
 import shutil
 import sys
 
@@ -61,6 +68,9 @@ def chmod(path, mode):
     Change the access permissions of a file.
     Also accepts Path objects
 
+    On Windows, you can only set the file's read-only flag (via stat.S_IWRITE /
+    stat.S_IREAD). All other bits are ignored.
+
     Arguments:
     - `path`: str or Path
     - `mode`: int
@@ -96,8 +106,10 @@ def chown(path, user=None, group=None, uid=None, gid=None):
     - `gid`: int
 
     Return: None
-    Exceptions: ValueError
+    Exceptions: ValueError, NotSupportedError
     """
+    if platform.system() == 'Windows':
+        raise exceptions.NotSupportedError('chown not supported on Windows')
     if len([x for x in [user, group, uid, gid] if x is None]) == 4:
         msg = "You haven't given a group or user to change to Larry... "
         raise ValueError(msg)
@@ -192,8 +204,10 @@ def ln(src, dest, force=None, symbolic=None):
     - `symbolic`
 
     Return: None
-    Exceptions: ExistsError
+    Exceptions: ExistsError, NotSupportedError
     """
+    if platform.system() == 'Windows':
+        raise exceptions.NotSupportedError('ln not supported on Windows')
     if not force and os.path.exists(dest):
         raise exceptions.ExistsError(
             '{0} already exists Larry... did you mean to force?'.format(dest))
@@ -209,7 +223,15 @@ def ln(src, dest, force=None, symbolic=None):
 # ln = os.link
 
 # # !!! Wrap to accept Path objects
-ln_s = os.symlink
+def ln_s(*args, **kwargs):
+    """
+    Python translation of GNU ln -s
+
+    Exceptions: NotSupportedError
+    """
+    if platform.system() == 'Windows':
+        raise exceptions.NotSupportedError('ln_s not supported on Windows')
+    return os.symlink(*args, **kwargs)
 
 # ::ln_sf (FileUtils)
 
