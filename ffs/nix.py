@@ -158,12 +158,13 @@ def cp(resource, target, recursive=False):
         raise exceptions.ExistsError("Won't overwrite an existing target Larry... ")
     if os.path.isdir(resource):
         if recursive:
-            return shutil.copytree(resource, target)
+            return cp_r(resource, target)
         return
-    shutil.copy2(resource, target)
+    shutil.copy2(str(resource), str(target))
     return
 
-cp_r = shutil.copytree
+def cp_r(src, dst, *args, **kwargs):
+    return shutil.copytree(str(src), str(dst), *args, **kwargs)
 
 getwd = os.getcwd
 
@@ -388,7 +389,8 @@ def rm(*targets, **kw):
     return
 
 # !!! Wrap to accept Path
-rm_r = shutil.rmtree
+def rm_r(path, *args, **kwargs):
+    return shutil.rmtree(str(path), *args, **kwargs)
 
 # ::rm_rf (FileUtils)
 
