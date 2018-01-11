@@ -325,7 +325,7 @@ def pwd():
 
     Prints the current working directory
     """
-    print(getcwd())
+    print(getwd())
     return
 
 def rm(*targets, **kw):
