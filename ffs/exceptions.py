@@ -29,3 +29,6 @@ class NotATarFileError(Error):
 
 class NotAZipFileError(Error):
     "This was supposed to be a zipfile. It is not."
+
+class NotSupportedError(Error):
+    "This operation is not supported on this platform."
