@@ -568,7 +568,7 @@ class LeafBranchPath(BasePath):
         if not self:
             raise TypeError("Can't load something that doesn't exist Larry... ")
         if self.is_dir:
-            raise TypeError("Can't tread a directory as JSON Larry... ")
+            raise TypeError("Can't treat a directory as JSON Larry... ")
         return json.loads(self.contents)
     
 
