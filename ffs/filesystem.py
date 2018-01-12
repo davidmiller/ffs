@@ -380,7 +380,13 @@ class DiskFilesystem(BaseFilesystem):
 
     @wraps(BaseFilesystem.abspath)
     def abspath(self, resource):
-        return os.path.abspath(self.expanduser(resource))
+        resource = self.expanduser(resource)
+        # Ensure that we pass a genuine str otherwise on the internal Windows
+        # implementation of ``os.path.abspath`` an ``if path`` conditional will
+        # incorrectly evaluate to ``False`` if our resource does not exist, and
+        # will then return the current working directory instead, ie. the
+        # equivalent of calling ``os.path.abspath('')``.
+        return os.path.abspath(str(resource))
 
     @wraps(BaseFilesystem.mkdir)
     def mkdir(self, resource, parents=False):
