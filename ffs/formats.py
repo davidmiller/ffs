@@ -4,6 +4,7 @@ ffs.formats
 import collections
 import csv
 
+import six
 from six.moves import StringIO
 
 WriterType = csv.writer(StringIO()).__class__
@@ -87,22 +88,22 @@ class CSV(object):
         Return: None
         Exceptions: None
         """
-        header = self.resolved.next()
+        header = six.next(self.resolved)
         clean = []
         for h in header:
             underscoreless = h.strip().lower().replace(' ', '_').replace('.', '_')
-            parenless = underscoreless.replace('(', '').replace(')', '')
-            if parenless == '':
-                clean.append(parenless)
+            specialless = underscoreless.replace('(', '').replace(')', '').replace('?', '').replace('-', '')
+            if specialless == '':
+                clean.append(specialless)
                 continue
             try:
-                num = int(parenless[0])
+                num = int(specialless[0])
                 numbers = {1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five',
                            6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten'}
-                numless = numbers[num] + parenless[1:]
+                numless = numbers[num] + specialless[1:]
                 cleaned = numless
             except ValueError:
-                cleaned = parenless
+                cleaned = specialless
 
             more = 1
             while cleaned in clean:
